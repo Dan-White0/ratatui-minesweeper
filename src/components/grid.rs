@@ -36,13 +36,15 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn can_create_grid() {
-        let grid = Grid::new(1, 2, 0);
+    #[test_case(1, 1 ; "tiny grid")]
+    #[test_case(1 , 100; "wide grid")]
+    #[test_case(100 , 1; "tall grid")]
+    #[test_case(100 , 100; "large grid")]
+    fn can_create_grid(grid_height: usize, grid_width: usize) {
+        let grid = Grid::new(grid_height, grid_width, 0);
 
-        let expected_rows = vec![vec![Cell::default(), Cell::default()]];
-
-        assert_eq!(grid.rows, expected_rows);
+        assert_eq!(grid.rows.len(), grid_height);
+        assert_eq!(grid.rows[0].len(), grid_width);
         assert_eq!(grid.cursor_row, 0);
         assert_eq!(grid.cursor_column, 0);
     }
