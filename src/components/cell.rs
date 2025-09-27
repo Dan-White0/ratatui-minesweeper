@@ -2,7 +2,7 @@
 pub struct Cell {
     flagged: bool,
     revealed: bool,
-    is_bomb: bool,
+    pub is_bomb: bool,
 }
 
 impl Cell {
