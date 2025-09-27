@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Cell {
     flagged: bool,
     revealed: bool,
