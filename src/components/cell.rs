@@ -2,7 +2,7 @@
 pub struct Cell {
     flagged: bool,
     revealed: bool,
-    pub is_bomb: bool,
+    pub is_mine: bool,
 }
 
 impl Cell {
@@ -14,8 +14,8 @@ impl Cell {
         self.revealed = true;
     }
 
-    pub fn place_bomb(&mut self) {
-        self.is_bomb = true;
+    pub fn place_mine(&mut self) {
+        self.is_mine = true;
     }
 }
 
@@ -56,14 +56,14 @@ mod tests {
     }
 
     #[test]
-    fn can_mark_as_bomb() {
+    fn can_mark_as_mine() {
         let mut cell = Cell::default();
 
-        // Cell is not a bomb
-        assert!(!cell.is_bomb);
+        // Cell is not a mine
+        assert!(!cell.is_mine);
 
-        // Can mark as bomb
-        cell.place_bomb();
-        assert!(cell.is_bomb);
+        // Can mark as mine
+        cell.place_mine();
+        assert!(cell.is_mine);
     }
 }

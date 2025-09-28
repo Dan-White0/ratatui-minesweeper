@@ -16,21 +16,21 @@ impl Grid {
     pub fn new(
         number_of_rows: usize,
         number_of_columns: usize,
-        number_of_bombs: usize,
+        number_of_mines: usize,
     ) -> Result<Self, Error> {
-        if number_of_bombs == 0 {
-            return Err(anyhow!("Cannot create a grid with no bombs"));
+        if number_of_mines == 0 {
+            return Err(anyhow!("Cannot create a grid with no mines"));
         }
 
         let total_cells = number_of_rows * number_of_columns;
 
-        if number_of_bombs > total_cells {
+        if number_of_mines > total_cells {
             return Err(anyhow!(
-                "Attempting to create a grid with more bombs than cells: {} cells ({}x{} grid), but tried to insert {} bombs",
+                "Attempting to create a grid with more mines than cells: {} cells ({}x{} grid), but tried to insert {} mines",
                 total_cells,
                 number_of_rows,
                 number_of_columns,
-                number_of_bombs
+                number_of_mines
             ));
         }
 
@@ -38,11 +38,11 @@ impl Grid {
 
         let mut rng = rand::rng();
 
-        for index in sample(&mut rng, total_cells, number_of_bombs).iter() {
+        for index in sample(&mut rng, total_cells, number_of_mines).iter() {
             let row_index = index / number_of_columns;
             let column_index = index % number_of_columns;
 
-            rows[row_index][column_index].place_bomb();
+            rows[row_index][column_index].place_mine();
         }
 
         Ok(Grid {
@@ -79,40 +79,40 @@ mod tests {
     }
 
     #[test]
-    fn return_err_if_trying_to_create_grid_with_more_bombs_than_cells() {
+    fn return_err_if_trying_to_create_grid_with_more_mines_than_cells() {
         let error = Grid::new(2, 3, 7).unwrap_err();
 
         // Check top error or context
         assert_eq!(
             format!("{}", error),
-            "Attempting to create a grid with more bombs than cells: 6 cells (2x3 grid), but tried to insert 7 bombs"
+            "Attempting to create a grid with more mines than cells: 6 cells (2x3 grid), but tried to insert 7 mines"
         );
     }
 
     #[test]
-    fn return_err_if_trying_to_create_grid_with_no_bombs() {
+    fn return_err_if_trying_to_create_grid_with_no_mines() {
         let error = Grid::new(2, 3, 0).unwrap_err();
 
         // Check top error or context
-        assert_eq!(format!("{}", error), "Cannot create a grid with no bombs");
+        assert_eq!(format!("{}", error), "Cannot create a grid with no mines");
     }
 
-    #[test_case(1 ; "one bomb")]
-    #[test_case(10 ; "many bombs")]
-    fn can_create_grid_with_expected_number_of_bombs(expected_number_of_bombs: usize) {
-        let grid = Grid::new(5, 5, expected_number_of_bombs).unwrap();
+    #[test_case(1 ; "one mine")]
+    #[test_case(10 ; "many mines")]
+    fn can_create_grid_with_expected_number_of_mines(expected_number_of_mines: usize) {
+        let grid = Grid::new(5, 5, expected_number_of_mines).unwrap();
 
-        let mut number_of_bombs = 0;
+        let mut number_of_mines = 0;
 
         for row in grid.rows {
             for cell in row {
-                if cell.is_bomb {
-                    number_of_bombs += 1;
+                if cell.is_mine {
+                    number_of_mines += 1;
                 }
             }
         }
 
-        assert_eq!(expected_number_of_bombs, number_of_bombs)
+        assert_eq!(expected_number_of_mines, number_of_mines)
     }
 
     #[test]
