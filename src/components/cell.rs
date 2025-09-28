@@ -17,6 +17,10 @@ impl Cell {
     pub fn place_mine(&mut self) {
         self.is_mine = true;
     }
+
+    fn as_string(&self) -> &str {
+        if self.revealed { "_" } else { "#" }
+    }
 }
 
 #[cfg(test)]
@@ -65,5 +69,17 @@ mod tests {
         // Can mark as mine
         cell.place_mine();
         assert!(cell.is_mine);
+    }
+
+    #[test]
+    fn empty_cell_converted_to_expected_string() {
+        let mut cell = Cell::default();
+
+        // Unrevealed cell appears as a #
+        assert_eq!(cell.as_string(), "#");
+
+        // Revealing the cell makes it appear as an _
+        cell.reveal();
+        assert_eq!(cell.as_string(), "_");
     }
 }
