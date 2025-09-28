@@ -57,6 +57,14 @@ impl Grid {
     fn move_cursor_right(&mut self) {
         self.cursor_column = (self.cursor_column + 1) % self.number_of_columns
     }
+
+    fn move_cursor_left(&mut self) {
+        self.cursor_column = self
+            .cursor_column
+            .checked_sub(1)
+            .unwrap_or_else(|| self.number_of_columns - 1)
+            % self.number_of_columns
+    }
 }
 
 #[cfg(test)]
@@ -116,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    fn can_move_cursor_horizontally() {
+    fn can_move_cursor_right() {
         let mut grid = Grid::new(2, 3, 1).unwrap();
 
         assert_eq!(grid.cursor_column, 0);
@@ -134,6 +142,29 @@ mod tests {
 
         // Moving again will wrap around to the start
         grid.move_cursor_right();
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
+    }
+
+    #[test]
+    fn can_move_cursor_left() {
+        let mut grid = Grid::new(2, 3, 1).unwrap();
+
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor left and it wraps around
+        grid.move_cursor_left();
+        assert_eq!(grid.cursor_column, 2);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor left again
+        grid.move_cursor_left();
+        assert_eq!(grid.cursor_column, 1);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor left again and it's back to the start
+        grid.move_cursor_left();
         assert_eq!(grid.cursor_column, 0);
         assert_eq!(grid.cursor_row, 0);
     }
