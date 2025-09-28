@@ -18,7 +18,7 @@ impl Cell {
         self.is_mine = true;
     }
 
-    fn as_string(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         if !self.revealed {
             "#"
         } else if self.is_mine {
@@ -82,11 +82,11 @@ mod tests {
         let mut cell = Cell::default();
 
         // Unrevealed cell appears as a #
-        assert_eq!(cell.as_string(), "#");
+        assert_eq!(cell.as_str(), "#");
 
         // Revealing the cell makes it appear as an _
         cell.reveal();
-        assert_eq!(cell.as_string(), "_");
+        assert_eq!(cell.as_str(), "_");
     }
 
     #[test]
@@ -97,10 +97,10 @@ mod tests {
         };
 
         // Unrevealed cell appears as a #
-        assert_eq!(cell.as_string(), "#");
+        assert_eq!(cell.as_str(), "#");
 
         // Revealing the cell makes it appear as an X
         cell.reveal();
-        assert_eq!(cell.as_string(), "X");
+        assert_eq!(cell.as_str(), "X");
     }
 }

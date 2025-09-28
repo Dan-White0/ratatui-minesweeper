@@ -1,5 +1,11 @@
 use anyhow::{Error, anyhow};
 use rand::seq::index::sample;
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
+    text::{Line, Text},
+    widgets::{Paragraph, Widget},
+};
 
 use crate::components::Cell;
 
@@ -76,6 +82,25 @@ impl Grid {
             .checked_sub(1)
             .unwrap_or_else(|| self.number_of_rows - 1)
             % self.number_of_rows
+    }
+}
+
+impl Widget for &Grid {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let rows: Vec<Line<'_>> = self
+            .rows
+            .iter()
+            .map(|row| {
+                Line::from(
+                    row.iter()
+                        .map(|cell| cell.as_str())
+                        .collect::<Vec<&str>>()
+                        .join(""),
+                )
+            })
+            .collect();
+
+        Paragraph::new(Text::from(rows)).render(area, buf);
     }
 }
 
@@ -225,5 +250,21 @@ mod tests {
         grid.move_cursor_up();
         assert_eq!(grid.cursor_column, 0);
         assert_eq!(grid.cursor_row, 0);
+    }
+
+    #[test]
+    fn unrevealed_grid_rendered_as_expected() {
+        let grid = Grid::new(2, 3, 1).unwrap();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+
+        grid.render(buf.area, &mut buf);
+
+        #[rustfmt::skip]  // It's nice to have each element of the vec to be on a separate line, like in the terminal
+        let expected = Buffer::with_lines(vec![
+            "###",
+            "###",
+        ]);
+
+        assert_eq!(buf, expected);
     }
 }
