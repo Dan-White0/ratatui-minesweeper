@@ -65,6 +65,10 @@ impl Grid {
             .unwrap_or_else(|| self.number_of_columns - 1)
             % self.number_of_columns
     }
+
+    fn move_cursor_down(&mut self) {
+        self.cursor_row = (self.cursor_row + 1) % self.number_of_rows
+    }
 }
 
 #[cfg(test)]
@@ -165,6 +169,29 @@ mod tests {
 
         // Can move cursor left again and it's back to the start
         grid.move_cursor_left();
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
+    }
+
+    #[test]
+    fn can_move_cursor_down() {
+        let mut grid = Grid::new(3, 3, 1).unwrap();
+
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor down
+        grid.move_cursor_down();
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 1);
+
+        // Can move cursor down again
+        grid.move_cursor_down();
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 2);
+
+        // Can move cursor down again and it wraps back to the top
+        grid.move_cursor_down();
         assert_eq!(grid.cursor_column, 0);
         assert_eq!(grid.cursor_row, 0);
     }
