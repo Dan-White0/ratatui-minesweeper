@@ -24,10 +24,10 @@ impl Grid {
 
         if number_of_bombs > total_cells {
             return Err(anyhow!(
-                "Attempting to create a grid with more bombs than cells: {}x{} grid ({} cells), but tried to insert {} bombs",
+                "Attempting to create a grid with more bombs than cells: {} cells ({}x{} grid), but tried to insert {} bombs",
+                total_cells,
                 number_of_rows,
                 number_of_columns,
-                total_cells,
                 number_of_bombs
             ));
         }
@@ -80,7 +80,7 @@ mod tests {
         // Check top error or context
         assert_eq!(
             format!("{}", error),
-            "Attempting to create a grid with more bombs than cells: 2x3 grid (6 cells), but tried to insert 7 bombs"
+            "Attempting to create a grid with more bombs than cells: 6 cells (2x3 grid), but tried to insert 7 bombs"
         );
     }
 
