@@ -5,6 +5,8 @@ use crate::components::Cell;
 
 #[derive(Debug, Default)]
 struct Grid {
+    number_of_rows: usize,
+    number_of_columns: usize,
     rows: Vec<Vec<Cell>>,
     cursor_row: usize,
     cursor_column: usize,
@@ -44,9 +46,16 @@ impl Grid {
         }
 
         Ok(Grid {
+            number_of_rows,
+            number_of_columns,
             rows,
-            ..Default::default()
+            cursor_row: 0,
+            cursor_column: 0,
         })
+    }
+
+    fn move_cursor_right(&mut self) {
+        self.cursor_column = (self.cursor_column + 1) % self.number_of_columns
     }
 }
 
@@ -61,11 +70,7 @@ mod tests {
     #[test_case(100 , 1; "tall grid")]
     #[test_case(100 , 100; "large grid")]
     fn can_create_grid(number_of_rows: usize, number_of_columns: usize) {
-        let grid = Grid::new(number_of_rows, number_of_columns, 1);
-
-        assert!(grid.is_ok());
-
-        let grid = grid.unwrap();
+        let grid = Grid::new(number_of_rows, number_of_columns, 1).unwrap();
 
         assert_eq!(grid.rows.len(), number_of_rows);
         assert_eq!(grid.rows[0].len(), number_of_columns);
@@ -95,11 +100,7 @@ mod tests {
     #[test_case(1 ; "one bomb")]
     #[test_case(10 ; "many bombs")]
     fn can_create_grid_with_expected_number_of_bombs(expected_number_of_bombs: usize) {
-        let grid = Grid::new(5, 5, expected_number_of_bombs);
-
-        assert!(grid.is_ok());
-
-        let grid = grid.unwrap();
+        let grid = Grid::new(5, 5, expected_number_of_bombs).unwrap();
 
         let mut number_of_bombs = 0;
 
@@ -112,5 +113,28 @@ mod tests {
         }
 
         assert_eq!(expected_number_of_bombs, number_of_bombs)
+    }
+
+    #[test]
+    fn can_move_cursor_horizontally() {
+        let mut grid = Grid::new(2, 3, 1).unwrap();
+
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor right
+        grid.move_cursor_right();
+        assert_eq!(grid.cursor_column, 1);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Can move cursor right again
+        grid.move_cursor_right();
+        assert_eq!(grid.cursor_column, 2);
+        assert_eq!(grid.cursor_row, 0);
+
+        // Moving again will wrap around to the start
+        grid.move_cursor_right();
+        assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.cursor_row, 0);
     }
 }
