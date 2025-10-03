@@ -10,7 +10,7 @@ use ratatui::{
 use crate::components::Cell;
 
 #[derive(Debug, Default)]
-struct Grid {
+pub struct Grid {
     number_of_rows: usize,
     number_of_columns: usize,
     rows: Vec<Vec<Cell>>,
