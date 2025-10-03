@@ -66,6 +66,21 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
+            KeyCode::Down => {
+                self.grid.move_cursor_down();
+            }
+            KeyCode::Up => {
+                self.grid.move_cursor_up();
+            }
+            KeyCode::Right => {
+                self.grid.move_cursor_right();
+            }
+            KeyCode::Left => {
+                self.grid.move_cursor_left();
+            }
+            KeyCode::Enter => {
+                self.grid.reveal_cell();
+            }
             _ => {}
         }
     }

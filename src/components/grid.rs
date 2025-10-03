@@ -60,11 +60,11 @@ impl Grid {
         })
     }
 
-    fn move_cursor_right(&mut self) {
+    pub fn move_cursor_right(&mut self) {
         self.cursor_column = (self.cursor_column + 1) % self.number_of_columns
     }
 
-    fn move_cursor_left(&mut self) {
+    pub fn move_cursor_left(&mut self) {
         self.cursor_column = self
             .cursor_column
             .checked_sub(1)
@@ -72,16 +72,20 @@ impl Grid {
             % self.number_of_columns
     }
 
-    fn move_cursor_down(&mut self) {
+    pub fn move_cursor_down(&mut self) {
         self.cursor_row = (self.cursor_row + 1) % self.number_of_rows
     }
 
-    fn move_cursor_up(&mut self) {
+    pub fn move_cursor_up(&mut self) {
         self.cursor_row = self
             .cursor_row
             .checked_sub(1)
             .unwrap_or_else(|| self.number_of_rows - 1)
             % self.number_of_rows
+    }
+
+    pub fn reveal_cell(&mut self) {
+        self.rows[self.cursor_row][self.cursor_column].reveal();
     }
 }
 
