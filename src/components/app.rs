@@ -1,5 +1,6 @@
 use std::io;
 
+use anyhow::Error;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     DefaultTerminal, Frame,
@@ -11,13 +12,27 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-#[derive(Debug, Default)]
+use crate::components::grid::Grid;
+
+#[derive(Debug)]
 pub struct App {
     exit: bool,
+    grid: Grid,
 }
 
 impl App {
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
+    pub fn new(
+        grid_height: usize,
+        grid_width: usize,
+        number_of_mines: usize,
+    ) -> Result<Self, Error> {
+        Ok(App {
+            exit: false,
+            grid: Grid::new(grid_height, grid_width, number_of_mines)?,
+        })
+    }
+
+    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), Error> {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
@@ -26,7 +41,16 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
+        let area = frame.area();
+        frame.render_widget(self, area);
+
+        let grid_area = Rect {
+            x: area.x + 1,
+            y: area.y + 1,
+            width: area.width - 2,
+            height: area.height - 2,
+        };
+        frame.render_widget(&self.grid, grid_area);
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
@@ -72,7 +96,7 @@ mod test {
 
     #[test]
     fn can_exit() {
-        let mut app = App::default();
+        let mut app = App::new(1, 1, 1).unwrap();
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Char('q').into());
