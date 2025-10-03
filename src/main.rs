@@ -4,8 +4,9 @@ use anyhow::Error;
 mod components;
 
 fn main() -> Result<(), Error> {
+    let mut app = App::new(10, 10, 10)?;
     let mut terminal = ratatui::init();
-    let app_result = App::new(10, 10, 10)?.run(&mut terminal);
+    let app_result = app.run(&mut terminal);
     ratatui::restore();
     app_result
 }
