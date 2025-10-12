@@ -3,7 +3,8 @@ use rand::seq::index::sample;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    text::{Line, Text},
+    style::{Color, Stylize},
+    text::{Line, Span, Text},
     widgets::{Paragraph, Widget},
 };
 
@@ -94,13 +95,28 @@ impl Widget for &Grid {
         let rows: Vec<Line<'_>> = self
             .rows
             .iter()
-            .map(|row| {
-                Line::from(
+            .enumerate()
+            .map(|(row_index, row)| {
+                let mut line = Line::from(
                     row.iter()
-                        .map(|cell| cell.as_str())
-                        .collect::<Vec<&str>>()
-                        .join(""),
-                )
+                        .enumerate()
+                        .map(|(column_index, cell)| {
+                            let mut span = cell.as_span();
+
+                            if column_index == self.cursor_column {
+                                span = span.bg(Color::DarkGray);
+                            }
+
+                            span
+                        })
+                        .collect::<Vec<Span>>(),
+                );
+
+                if row_index == self.cursor_row {
+                    line = line.bg(Color::DarkGray);
+                }
+
+                line
             })
             .collect();
 
@@ -110,6 +126,7 @@ impl Widget for &Grid {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::style::Style;
     use test_case::test_case;
 
     use super::*;
@@ -264,10 +281,15 @@ mod tests {
         grid.render(buf.area, &mut buf);
 
         #[rustfmt::skip]  // It's nice to have each element of the vec to be on a separate line, like in the terminal
-        let expected = Buffer::with_lines(vec![
+        let mut expected = Buffer::with_lines(vec![
             "###",
             "###",
         ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+
+        expected.set_style(Rect::new(0, 0, 3, 1), selected_index_style);
+        expected.set_style(Rect::new(0, 1, 1, 1), selected_index_style);
 
         assert_eq!(buf, expected);
     }

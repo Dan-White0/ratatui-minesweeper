@@ -1,3 +1,5 @@
+use ratatui::text::Span;
+
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Cell {
     flagged: bool,
@@ -18,7 +20,11 @@ impl Cell {
         self.is_mine = true;
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_span(&'_ self) -> Span<'_> {
+        Span::from(self.as_str())
+    }
+
+    fn as_str(&self) -> &str {
         if !self.revealed {
             "#"
         } else if self.is_mine {
