@@ -5,6 +5,7 @@ pub struct Cell {
     flagged: bool,
     revealed: bool,
     pub is_mine: bool,
+    neighbouring_mines: u8,
 }
 
 impl Cell {
@@ -21,18 +22,20 @@ impl Cell {
     }
 
     pub fn as_span(&'_ self) -> Span<'_> {
-        Span::from(self.as_str())
+        Span::from(self.as_string())
     }
 
-    fn as_str(&self) -> &str {
+    fn as_string(&self) -> String {
         if self.flagged && !self.revealed {
-            "F"
+            "F".to_string()
         } else if !self.revealed {
-            "#"
+            "#".to_string()
         } else if self.is_mine {
-            "X"
+            "X".to_string()
+        } else if self.neighbouring_mines > 0 {
+            self.neighbouring_mines.to_string()
         } else {
-            "_"
+            "_".to_string()
         }
     }
 }
@@ -92,11 +95,11 @@ mod tests {
         let mut cell = Cell::default();
 
         // Unrevealed cell appears as a #
-        assert_eq!(cell.as_str(), "#");
+        assert_eq!(cell.as_string(), "#");
 
         // Revealing the cell makes it appear as an _
         cell.reveal();
-        assert_eq!(cell.as_str(), "_");
+        assert_eq!(cell.as_string(), "_");
     }
 
     #[test]
@@ -107,11 +110,11 @@ mod tests {
         };
 
         // Unrevealed cell appears as a #
-        assert_eq!(cell.as_str(), "#");
+        assert_eq!(cell.as_string(), "#");
 
         // Revealing the cell makes it appear as an X
         cell.reveal();
-        assert_eq!(cell.as_str(), "X");
+        assert_eq!(cell.as_string(), "X");
     }
 
     #[test_case(true, "X" ; "flagged cell is a mine")]
@@ -119,14 +122,60 @@ mod tests {
     fn flagged_cell_converted_to_expected_string(is_mine: bool, revealed_str: &str) {
         let mut cell = Cell {
             flagged: true,
-            is_mine: is_mine,
+            is_mine,
             ..Default::default()
         };
 
         // Unrevealed cell appears as an F
-        assert_eq!(cell.as_str(), "F");
+        assert_eq!(cell.as_string(), "F");
 
         cell.reveal();
-        assert_eq!(cell.as_str(), revealed_str);
+        assert_eq!(cell.as_string(), revealed_str);
+    }
+
+    #[test_case(1, "1" ; "one neighbouring mine")]
+    #[test_case(2, "2" ; "two neighbouring mines")]
+    #[test_case(3, "3" ; "three neighbouring mines")]
+    #[test_case(4, "4" ; "four neighbouring mines")]
+    #[test_case(5, "5" ; "five neighbouring mines")]
+    #[test_case(6, "6" ; "six neighbouring mines")]
+    #[test_case(7, "7" ; "seven neighbouring mines")]
+    #[test_case(8, "8" ; "eight neighbouring mines")]
+    fn unmined_cell_with_mined_neighbours_converted_to_expected_string(
+        neighbouring_mines: u8,
+        revealed_str: &str,
+    ) {
+        let mut cell = Cell {
+            neighbouring_mines,
+            ..Default::default()
+        };
+
+        // Unrevealed cell appears as a #
+        assert_eq!(cell.as_string(), "#");
+
+        cell.reveal();
+        assert_eq!(cell.as_string(), revealed_str);
+    }
+
+    #[test_case(1 ; "one neighbouring mine")]
+    #[test_case(2 ; "two neighbouring mines")]
+    #[test_case(3 ; "three neighbouring mines")]
+    #[test_case(4 ; "four neighbouring mines")]
+    #[test_case(5 ; "five neighbouring mines")]
+    #[test_case(6 ; "six neighbouring mines")]
+    #[test_case(7 ; "seven neighbouring mines")]
+    #[test_case(8 ; "eight neighbouring mines")]
+    fn mined_cell_with_mined_neighbours_converted_to_expected_string(neighbouring_mines: u8) {
+        let mut cell = Cell {
+            neighbouring_mines,
+            is_mine: true,
+            ..Default::default()
+        };
+
+        // Unrevealed cell appears as a #
+        assert_eq!(cell.as_string(), "#");
+
+        cell.reveal();
+        assert_eq!(cell.as_string(), "X");
     }
 }
