@@ -293,4 +293,61 @@ mod tests {
 
         assert_eq!(buf, expected);
     }
+
+    #[test]
+    fn moving_cusor_updates_selected_row_and_column() {
+        let mut grid = Grid::new(2, 3, 1).unwrap();
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+
+        grid.render(buf.area, &mut buf);
+
+        // Grid first formatted as expected
+        #[rustfmt::skip]
+        let mut expected = Buffer::with_lines(vec![
+            "###",
+            "###",
+        ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+        expected.set_style(Rect::new(0, 0, 3, 1), selected_index_style);
+        expected.set_style(Rect::new(0, 1, 1, 1), selected_index_style);
+
+        assert_eq!(buf, expected);
+
+        // Moving the cursor right shifts the background colour to the second column
+        grid.move_cursor_right();
+
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+        grid.render(buf.area, &mut buf);
+
+        #[rustfmt::skip]
+        let mut expected = Buffer::with_lines(vec![
+            "###",
+            "###",
+        ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+        expected.set_style(Rect::new(0, 0, 3, 1), selected_index_style);
+        expected.set_style(Rect::new(1, 1, 1, 1), selected_index_style);
+
+        assert_eq!(buf, expected);
+
+        // Moving the cursor down shifts the background colour to the second row
+        grid.move_cursor_down();
+
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+        grid.render(buf.area, &mut buf);
+
+        #[rustfmt::skip]
+        let mut expected = Buffer::with_lines(vec![
+            "###",
+            "###",
+        ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+        expected.set_style(Rect::new(1, 0, 1, 1), selected_index_style);
+        expected.set_style(Rect::new(0, 1, 3, 1), selected_index_style);
+
+        assert_eq!(buf, expected);
+    }
 }
