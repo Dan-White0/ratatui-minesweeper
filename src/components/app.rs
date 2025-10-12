@@ -81,6 +81,9 @@ impl App {
             KeyCode::Enter => {
                 self.grid.reveal_cell();
             }
+            KeyCode::Char('f') => {
+                self.grid.flag_cell();
+            }
             _ => {}
         }
     }

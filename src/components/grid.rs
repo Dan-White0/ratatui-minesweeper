@@ -88,6 +88,10 @@ impl Grid {
     pub fn reveal_cell(&mut self) {
         self.rows[self.cursor_row][self.cursor_column].reveal();
     }
+
+    pub fn flag_cell(&mut self) {
+        self.rows[self.cursor_row][self.cursor_column].toggle_flag();
+    }
 }
 
 impl Widget for &Grid {
