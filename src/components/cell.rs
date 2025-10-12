@@ -25,7 +25,9 @@ impl Cell {
     }
 
     fn as_str(&self) -> &str {
-        if !self.revealed {
+        if self.flagged && !self.revealed {
+            "F"
+        } else if !self.revealed {
             "#"
         } else if self.is_mine {
             "X"
@@ -108,5 +110,33 @@ mod tests {
         // Revealing the cell makes it appear as an X
         cell.reveal();
         assert_eq!(cell.as_str(), "X");
+    }
+
+    #[test]
+    fn flagged_cell_converted_to_expected_string() {
+        let mut cell_unmined = Cell {
+            flagged: true,
+            ..Default::default()
+        };
+
+        // Unrevealed cell appears as a #
+        assert_eq!(cell_unmined.as_str(), "F");
+
+        // Revealing the cell makes it appear as an _
+        cell_unmined.reveal();
+        assert_eq!(cell_unmined.as_str(), "_");
+
+        let mut cell_mined = Cell {
+            flagged: true,
+            is_mine: true,
+            ..Default::default()
+        };
+
+        // Unrevealed cell appears as a #
+        assert_eq!(cell_mined.as_str(), "F");
+
+        // Revealing the cell makes it appear as an _
+        cell_mined.reveal();
+        assert_eq!(cell_mined.as_str(), "X");
     }
 }
