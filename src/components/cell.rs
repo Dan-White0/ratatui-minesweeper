@@ -41,6 +41,8 @@ impl Cell {
 mod tests {
     use super::*;
 
+    use test_case::test_case;
+
     #[test]
     fn can_toggle_flag() {
         let mut cell = Cell::default();
@@ -112,31 +114,19 @@ mod tests {
         assert_eq!(cell.as_str(), "X");
     }
 
-    #[test]
-    fn flagged_cell_converted_to_expected_string() {
-        let mut cell_unmined = Cell {
+    #[test_case(true, "X" ; "flagged cell is a mine")]
+    #[test_case(false, "_" ; "flagged cell is not a mine")]
+    fn flagged_cell_converted_to_expected_string(is_mine: bool, revealed_str: &str) {
+        let mut cell = Cell {
             flagged: true,
+            is_mine: is_mine,
             ..Default::default()
         };
 
-        // Unrevealed cell appears as a #
-        assert_eq!(cell_unmined.as_str(), "F");
+        // Unrevealed cell appears as an F
+        assert_eq!(cell.as_str(), "F");
 
-        // Revealing the cell makes it appear as an _
-        cell_unmined.reveal();
-        assert_eq!(cell_unmined.as_str(), "_");
-
-        let mut cell_mined = Cell {
-            flagged: true,
-            is_mine: true,
-            ..Default::default()
-        };
-
-        // Unrevealed cell appears as a #
-        assert_eq!(cell_mined.as_str(), "F");
-
-        // Revealing the cell makes it appear as an _
-        cell_mined.reveal();
-        assert_eq!(cell_mined.as_str(), "X");
+        cell.reveal();
+        assert_eq!(cell.as_str(), revealed_str);
     }
 }
