@@ -2,8 +2,8 @@ use ratatui::text::Span;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Cell {
-    flagged: bool,
-    revealed: bool,
+    pub flagged: bool,
+    pub revealed: bool,
     pub is_mine: bool,
     pub neighbouring_mines: u8,
 }

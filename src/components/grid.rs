@@ -104,7 +104,24 @@ impl Grid {
     }
 
     pub fn reveal_cell(&mut self) {
-        self.rows[self.cursor_row][self.cursor_column].reveal();
+        self._reveal_cell(self.cursor_row, self.cursor_column);
+    }
+
+    fn _reveal_cell(&mut self, cell_row: usize, cell_column: usize) {
+        let cell = &mut self.rows[cell_row][cell_column];
+        if cell.revealed {
+            return;
+        }
+        cell.reveal();
+        if cell.neighbouring_mines == 0 {
+            for i in cell_row.saturating_sub(1)..(cell_row + 2).min(self.number_of_rows) {
+                for j in
+                    cell_column.saturating_sub(1)..(cell_column + 2).min(self.number_of_columns)
+                {
+                    self._reveal_cell(i, j);
+                }
+            }
+        }
     }
 
     pub fn flag_cell(&mut self) {
@@ -431,5 +448,75 @@ mod tests {
         // The other cells are unaffected
         assert_eq!(cell_vec[0][2].neighbouring_mines, 0);
         assert_eq!(cell_vec[2][0].neighbouring_mines, 0);
+    }
+
+    #[test]
+    fn reveling_cell_with_no_neighbouring_mines_reveals_further_cells() {
+        // 3x2 grid with a single mine in the top left cell
+        let mut grid = Grid {
+            number_of_rows: 2,
+            number_of_columns: 3,
+            rows: vec![
+                vec![
+                    Cell::default(),
+                    Cell {
+                        neighbouring_mines: 1,
+                        ..Default::default()
+                    },
+                    Cell {
+                        neighbouring_mines: 1,
+                        is_mine: true,
+                        ..Default::default()
+                    },
+                ],
+                vec![
+                    Cell::default(),
+                    Cell {
+                        neighbouring_mines: 1,
+                        ..Default::default()
+                    },
+                    Cell {
+                        neighbouring_mines: 1,
+                        ..Default::default()
+                    },
+                ],
+            ],
+            cursor_row: 0,
+            cursor_column: 0,
+        };
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+
+        grid.render(buf.area, &mut buf);
+
+        // Grid first formatted as expected
+        #[rustfmt::skip]
+        let mut expected = Buffer::with_lines(vec![
+            "###",
+            "###",
+        ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+        expected.set_style(Rect::new(0, 0, 3, 1), selected_index_style);
+        expected.set_style(Rect::new(0, 1, 1, 1), selected_index_style);
+
+        assert_eq!(buf, expected);
+
+        // Revealing the top left cell will reveal more neighbouring cells, as it doesn't neighbour a mine
+        grid.reveal_cell();
+
+        let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
+        grid.render(buf.area, &mut buf);
+
+        #[rustfmt::skip]
+        let mut expected = Buffer::with_lines(vec![
+            "_1#",
+            "_1#",
+        ]);
+
+        let selected_index_style = Style::new().bg(Color::DarkGray);
+        expected.set_style(Rect::new(0, 0, 3, 1), selected_index_style);
+        expected.set_style(Rect::new(0, 1, 1, 1), selected_index_style);
+
+        assert_eq!(buf, expected);
     }
 }
