@@ -2,13 +2,13 @@ use anyhow::{Error, anyhow};
 use rand::seq::index::sample;
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
+    layout::{Constraint, Rect},
     style::{Color, Stylize},
     text::{Line, Span, Text},
     widgets::{Paragraph, Widget},
 };
 
-use crate::components::Cell;
+use crate::components::{Cell, layout::center};
 
 #[derive(Debug, Default)]
 pub struct Grid {
@@ -158,6 +158,12 @@ impl Widget for &Grid {
                 line
             })
             .collect();
+
+        let area = center(
+            area,
+            Constraint::Length(self.number_of_columns as u16),
+            Constraint::Length(self.number_of_rows as u16),
+        );
 
         Paragraph::new(Text::from(rows)).render(area, buf);
     }
