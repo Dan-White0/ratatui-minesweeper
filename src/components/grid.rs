@@ -46,12 +46,7 @@ impl Grid {
         let mut rng = rand::rng();
 
         for mined_cell_index in sample(&mut rng, total_cells, number_of_mines).iter() {
-            Grid::place_mine(
-                &mut rows,
-                number_of_columns,
-                number_of_rows,
-                mined_cell_index,
-            );
+            Grid::place_mine(&mut rows, number_of_columns, mined_cell_index);
         }
 
         Ok(Grid {
@@ -63,12 +58,7 @@ impl Grid {
         })
     }
 
-    fn place_mine(
-        rows: &mut [Vec<Cell>],
-        number_of_columns: usize,
-        number_of_rows: usize,
-        mined_cell_index: usize,
-    ) {
+    fn place_mine(rows: &mut [Vec<Cell>], number_of_columns: usize, mined_cell_index: usize) {
         let row_index = mined_cell_index / number_of_columns;
         let column_index = mined_cell_index % number_of_columns;
 
@@ -76,12 +66,12 @@ impl Grid {
 
         for row in rows
             .iter_mut()
-            .take((row_index + 2).min(number_of_rows))
+            .take(row_index + 2)
             .skip(row_index.saturating_sub(1))
         {
             for cell in row
                 .iter_mut()
-                .take((column_index + 2).min(number_of_columns))
+                .take(column_index + 2)
                 .skip(column_index.saturating_sub(1))
             {
                 cell.neighbouring_mines += 1;
@@ -398,7 +388,7 @@ mod tests {
         assert!(!cell_vec[2].iter().any(|cell: &Cell| cell.is_mine));
 
         // Place mine in the top left corner
-        Grid::place_mine(&mut cell_vec, 3, 3, 0);
+        Grid::place_mine(&mut cell_vec, 3, 0);
 
         // Only top left cell is mined
         assert!(cell_vec[0][0].is_mine); // is mined
@@ -420,7 +410,7 @@ mod tests {
         assert_eq!(cell_vec[2][2].neighbouring_mines, 0);
 
         // Place mine in the bottom right corner
-        Grid::place_mine(&mut cell_vec, 3, 3, 8);
+        Grid::place_mine(&mut cell_vec, 3, 8);
 
         // Both top left and bottom right cell are mined
         assert!(cell_vec[0][0].is_mine); // is mined
