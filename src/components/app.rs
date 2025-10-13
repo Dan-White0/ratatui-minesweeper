@@ -95,7 +95,7 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from(" TUI File Explorer ".bold());
+        let title = Line::from(" Minesweeper! ".bold());
 
         let block = Block::bordered()
             .title(title.centered())
