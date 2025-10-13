@@ -79,6 +79,10 @@ impl Grid {
         }
     }
 
+    pub fn current_cell(&self) -> &Cell {
+        &self.rows[self.cursor_row][self.cursor_column]
+    }
+
     pub fn move_cursor_right(&mut self) {
         self.cursor_column = (self.cursor_column + 1) % self.number_of_columns
     }
@@ -166,6 +170,21 @@ impl Widget for &Grid {
         );
 
         Paragraph::new(Text::from(rows)).render(area, buf);
+    }
+}
+
+#[cfg(test)]
+impl Grid {
+    pub fn custom(rows: Vec<Vec<Cell>>) -> Self {
+        let number_of_rows = rows.len();
+        let number_of_columns = rows[0].len();
+        Self {
+            rows: rows,
+            number_of_rows,
+            number_of_columns,
+            cursor_row: 0,
+            cursor_column: 0,
+        }
     }
 }
 

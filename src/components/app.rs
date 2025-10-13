@@ -12,12 +12,13 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use crate::components::grid::Grid;
+use crate::components::{gamestate::GameState, grid::Grid};
 
 #[derive(Debug)]
 pub struct App {
     exit: bool,
     grid: Grid,
+    gamestate: GameState,
 }
 
 impl App {
@@ -29,6 +30,7 @@ impl App {
         Ok(App {
             exit: false,
             grid: Grid::new(grid_height, grid_width, number_of_mines)?,
+            gamestate: GameState::Playing,
         })
     }
 
@@ -79,7 +81,7 @@ impl App {
                 self.grid.move_cursor_left();
             }
             KeyCode::Enter => {
-                self.grid.reveal_cell();
+                self.reveal_cell();
             }
             KeyCode::Char('f') => {
                 self.grid.flag_cell();
@@ -90,6 +92,13 @@ impl App {
 
     fn exit(&mut self) {
         self.exit = true;
+    }
+
+    fn reveal_cell(&mut self) {
+        self.grid.reveal_cell();
+        if self.grid.current_cell().is_mine {
+            self.gamestate = GameState::Lost;
+        }
     }
 }
 
@@ -110,6 +119,8 @@ impl Widget for &App {
 
 #[cfg(test)]
 mod test {
+    use crate::components::Cell;
+
     use super::*;
 
     #[test]
@@ -119,5 +130,57 @@ mod test {
 
         app.handle_key_event(KeyCode::Char('q').into());
         assert!(app.exit);
+    }
+
+    #[test]
+    fn revealing_an_empty_cell_doesnt_change_gamestate() {
+        // 2x1 grid, mine in second cell
+        let grid = Grid::custom(vec![vec![
+            Cell {
+                neighbouring_mines: 1,
+                ..Default::default()
+            },
+            Cell {
+                neighbouring_mines: 1,
+                is_mine: true,
+                ..Default::default()
+            },
+        ]]);
+
+        let mut app = App {
+            exit: false,
+            gamestate: GameState::Playing,
+            grid,
+        };
+        assert!(!app.exit);
+
+        app.handle_key_event(KeyCode::Enter.into());
+        assert_eq!(app.gamestate, GameState::Playing);
+    }
+
+    #[test]
+    fn revealing_a_cell_with_a_mine_changes_gamestate_to_lost() {
+        // 2x1 grid, mine in second cell
+        let grid = Grid::custom(vec![vec![
+            Cell {
+                neighbouring_mines: 1,
+                is_mine: true,
+                ..Default::default()
+            },
+            Cell {
+                neighbouring_mines: 1,
+                ..Default::default()
+            },
+        ]]);
+
+        let mut app = App {
+            exit: false,
+            gamestate: GameState::Playing,
+            grid,
+        };
+        assert!(!app.exit);
+
+        app.handle_key_event(KeyCode::Enter.into());
+        assert_eq!(app.gamestate, GameState::Lost);
     }
 }
