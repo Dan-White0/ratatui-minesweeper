@@ -5,7 +5,7 @@ pub struct Cell {
     flagged: bool,
     revealed: bool,
     pub is_mine: bool,
-    neighbouring_mines: u8,
+    pub neighbouring_mines: u8,
 }
 
 impl Cell {

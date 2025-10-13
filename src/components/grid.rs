@@ -45,11 +45,13 @@ impl Grid {
 
         let mut rng = rand::rng();
 
-        for index in sample(&mut rng, total_cells, number_of_mines).iter() {
-            let row_index = index / number_of_columns;
-            let column_index = index % number_of_columns;
-
-            rows[row_index][column_index].place_mine();
+        for mined_cell_index in sample(&mut rng, total_cells, number_of_mines).iter() {
+            Grid::place_mine(
+                &mut rows,
+                number_of_columns,
+                number_of_rows,
+                mined_cell_index,
+            );
         }
 
         Ok(Grid {
@@ -59,6 +61,32 @@ impl Grid {
             cursor_row: 0,
             cursor_column: 0,
         })
+    }
+
+    fn place_mine(
+        rows: &mut [Vec<Cell>],
+        number_of_columns: usize,
+        number_of_rows: usize,
+        mined_cell_index: usize,
+    ) {
+        let row_index = mined_cell_index / number_of_columns;
+        let column_index = mined_cell_index % number_of_columns;
+
+        rows[row_index][column_index].place_mine();
+
+        for row in rows
+            .iter_mut()
+            .take((row_index + 2).min(number_of_rows))
+            .skip(row_index.saturating_sub(1))
+        {
+            for cell in row
+                .iter_mut()
+                .take((column_index + 2).min(number_of_columns))
+                .skip(column_index.saturating_sub(1))
+            {
+                cell.neighbouring_mines += 1;
+            }
+        }
     }
 
     pub fn move_cursor_right(&mut self) {
@@ -353,5 +381,65 @@ mod tests {
         expected.set_style(Rect::new(0, 1, 3, 1), selected_index_style);
 
         assert_eq!(buf, expected);
+    }
+
+    #[test]
+    fn mining_a_cell_updates_neighbouring_cells_to_have_a_mined_neighbour() {
+        // 3x3 grid
+        let mut cell_vec = vec![
+            vec![Cell::default(), Cell::default(), Cell::default()],
+            vec![Cell::default(), Cell::default(), Cell::default()],
+            vec![Cell::default(), Cell::default(), Cell::default()],
+        ];
+
+        // No cells are mined at the start
+        assert!(!cell_vec[0].iter().any(|cell: &Cell| cell.is_mine));
+        assert!(!cell_vec[1].iter().any(|cell: &Cell| cell.is_mine));
+        assert!(!cell_vec[2].iter().any(|cell: &Cell| cell.is_mine));
+
+        // Place mine in the top left corner
+        Grid::place_mine(&mut cell_vec, 3, 3, 0);
+
+        // Only top left cell is mined
+        assert!(cell_vec[0][0].is_mine); // is mined
+        assert!(!cell_vec[0][1].is_mine); // other cells on row are not mined
+        assert!(!cell_vec[0][2].is_mine);
+        assert!(!cell_vec[1].iter().any(|cell: &Cell| cell.is_mine));
+        assert!(!cell_vec[2].iter().any(|cell: &Cell| cell.is_mine));
+
+        // Cells neighbouring top left cell have their amount of neighbouring mines updated
+        assert_eq!(cell_vec[0][1].neighbouring_mines, 1);
+        assert_eq!(cell_vec[1][0].neighbouring_mines, 1);
+        assert_eq!(cell_vec[1][1].neighbouring_mines, 1);
+
+        // The other cells are unaffected
+        assert_eq!(cell_vec[0][2].neighbouring_mines, 0);
+        assert_eq!(cell_vec[1][2].neighbouring_mines, 0);
+        assert_eq!(cell_vec[2][0].neighbouring_mines, 0);
+        assert_eq!(cell_vec[2][1].neighbouring_mines, 0);
+        assert_eq!(cell_vec[2][2].neighbouring_mines, 0);
+
+        // Place mine in the bottom right corner
+        Grid::place_mine(&mut cell_vec, 3, 3, 8);
+
+        // Both top left and bottom right cell are mined
+        assert!(cell_vec[0][0].is_mine); // is mined
+        assert!(!cell_vec[0][1].is_mine); // other cells on row are not mined
+        assert!(!cell_vec[0][2].is_mine);
+        assert!(!cell_vec[1].iter().any(|cell: &Cell| cell.is_mine));
+        assert!(!cell_vec[2][0].is_mine); // other cells on row are not mined
+        assert!(!cell_vec[2][1].is_mine);
+        assert!(cell_vec[2][2].is_mine); // is mined
+
+        // Cells neighbouring mines updated
+        assert_eq!(cell_vec[0][1].neighbouring_mines, 1);
+        assert_eq!(cell_vec[1][0].neighbouring_mines, 1);
+        assert_eq!(cell_vec[1][1].neighbouring_mines, 2); // neighbouring both mines
+        assert_eq!(cell_vec[1][2].neighbouring_mines, 1);
+        assert_eq!(cell_vec[2][1].neighbouring_mines, 1);
+
+        // The other cells are unaffected
+        assert_eq!(cell_vec[0][2].neighbouring_mines, 0);
+        assert_eq!(cell_vec[2][0].neighbouring_mines, 0);
     }
 }
