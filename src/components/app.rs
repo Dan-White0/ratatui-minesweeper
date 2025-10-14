@@ -5,6 +5,7 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
+    crossterm::style::Color,
     layout::Rect,
     style::Stylize,
     symbols::border,
@@ -108,9 +109,15 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(" Minesweeper! ".bold());
 
-        let block = Block::bordered()
+        let mut block = Block::bordered()
             .title(title.centered())
             .border_set(border::THICK);
+
+        if self.gamestate == GameState::Lost {
+            block = block.bg(Color::Red);
+        } else if self.gamestate == GameState::Won {
+            block = block.bg(Color::Green);
+        }
 
         Paragraph::new(Line::from(""))
             .left_aligned()
