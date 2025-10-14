@@ -34,11 +34,7 @@ impl Grid {
 
         if number_of_mines > total_cells {
             return Err(anyhow!(
-                "Attempting to create a grid with more mines than cells: {} cells ({}x{} grid), but tried to insert {} mines",
-                total_cells,
-                number_of_rows,
-                number_of_columns,
-                number_of_mines
+                "Attempting to create a grid with more mines than cells: {total_cells} cells ({number_of_columns}x{number_of_rows} grid), but tried to insert {number_of_mines} mines",
             ));
         }
 
@@ -238,7 +234,7 @@ mod tests {
         // Check top error or context
         assert_eq!(
             format!("{}", error),
-            "Attempting to create a grid with more mines than cells: 6 cells (2x3 grid), but tried to insert 7 mines"
+            "Attempting to create a grid with more mines than cells: 6 cells (3x2 grid), but tried to insert 7 mines"
         );
     }
 
