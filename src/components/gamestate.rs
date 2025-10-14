@@ -2,4 +2,5 @@
 pub enum GameState {
     Playing,
     Lost,
+    Won,
 }

@@ -98,6 +98,8 @@ impl App {
         self.grid.reveal_cell();
         if self.grid.current_cell().is_mine {
             self.gamestate = GameState::Lost;
+        } else if self.grid.finished() {
+            self.gamestate = GameState::Won
         }
     }
 }
@@ -133,7 +135,37 @@ mod test {
     }
 
     #[test]
-    fn revealing_an_empty_cell_doesnt_change_gamestate() {
+    fn revealing_an_empty_cell_doesnt_change_gamestate_if_there_are_still_unrevealed_empty_cells() {
+        // 3x1 grid, mine in third cell
+        let grid = Grid::custom(vec![vec![
+            Cell {
+                neighbouring_mines: 1,
+                ..Default::default()
+            },
+            Cell {
+                neighbouring_mines: 1,
+                ..Default::default()
+            },
+            Cell {
+                neighbouring_mines: 1,
+                is_mine: true,
+                ..Default::default()
+            },
+        ]]);
+
+        let mut app = App {
+            exit: false,
+            gamestate: GameState::Playing,
+            grid,
+        };
+        assert!(!app.exit);
+
+        app.handle_key_event(KeyCode::Enter.into());
+        assert_eq!(app.gamestate, GameState::Playing);
+    }
+
+    #[test]
+    fn revealing_an_empty_cell_changes_gamestate_to_won_if_there_are_no_unrevealed_empty_cells() {
         // 2x1 grid, mine in second cell
         let grid = Grid::custom(vec![vec![
             Cell {
@@ -155,7 +187,7 @@ mod test {
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, GameState::Playing);
+        assert_eq!(app.gamestate, GameState::Won);
     }
 
     #[test]

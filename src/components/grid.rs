@@ -119,6 +119,7 @@ impl Grid {
             return;
         }
         cell.reveal();
+        self.remaining_empty_cells -= 1;
         if cell.neighbouring_mines == 0 {
             for i in cell_row.saturating_sub(1)..(cell_row + 2).min(self.number_of_rows) {
                 for j in
@@ -132,6 +133,10 @@ impl Grid {
 
     pub fn flag_cell(&mut self) {
         self.rows[self.cursor_row][self.cursor_column].toggle_flag();
+    }
+
+    pub fn finished(&self) -> bool {
+        self.remaining_empty_cells == 0
     }
 }
 
@@ -521,6 +526,10 @@ mod tests {
                 },
             ],
         ]);
+        // Starts as 3x2 grid with 1 mine, so 5 empty unrevealed cells
+        assert_eq!(grid.remaining_empty_cells, 5);
+        assert!(!grid.finished());
+
         let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
 
         grid.render(buf.area, &mut buf);
@@ -540,6 +549,9 @@ mod tests {
 
         // Revealing the top left cell will reveal more neighbouring cells, as it doesn't neighbour a mine
         grid.reveal_cell();
+
+        assert_eq!(grid.remaining_empty_cells, 1);
+        assert!(!grid.finished());
 
         let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
         grid.render(buf.area, &mut buf);
