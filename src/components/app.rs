@@ -13,13 +13,13 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use crate::components::{gamestate::GameState, grid::Grid};
+use crate::components::{appstate::AppState, grid::Grid};
 
 #[derive(Debug)]
 pub struct App {
     exit: bool,
     grid: Grid,
-    gamestate: GameState,
+    gamestate: AppState,
     start_time: Instant,
     time_taken_s: Option<u64>,
 }
@@ -33,7 +33,7 @@ impl App {
         Ok(App {
             exit: false,
             grid: Grid::new(grid_height, grid_width, number_of_mines)?,
-            gamestate: GameState::Playing,
+            gamestate: AppState::Playing,
             start_time: Instant::now(),
             time_taken_s: None,
         })
@@ -102,10 +102,10 @@ impl App {
     fn reveal_cell(&mut self) {
         self.grid.reveal_cell();
         if self.grid.current_cell().is_mine {
-            self.gamestate = GameState::Lost;
+            self.gamestate = AppState::Lost;
             self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         } else if self.grid.finished() {
-            self.gamestate = GameState::Won;
+            self.gamestate = AppState::Won;
             self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         }
     }
@@ -127,9 +127,9 @@ impl Widget for &App {
             .title_bottom(timer.centered())
             .border_set(border::THICK);
 
-        if self.gamestate == GameState::Lost {
+        if self.gamestate == AppState::Lost {
             block = block.bg(Color::Red);
-        } else if self.gamestate == GameState::Won {
+        } else if self.gamestate == AppState::Won {
             block = block.bg(Color::Green);
         }
 
@@ -176,15 +176,15 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: GameState::Playing,
+            gamestate: AppState::Playing,
             grid,
             start_time: Instant::now(),
-            time_taken_s: None
+            time_taken_s: None,
         };
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, GameState::Playing);
+        assert_eq!(app.gamestate, AppState::Playing);
     }
 
     #[test]
@@ -204,15 +204,15 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: GameState::Playing,
+            gamestate: AppState::Playing,
             grid,
             start_time: Instant::now(),
-            time_taken_s: None
+            time_taken_s: None,
         };
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, GameState::Won);
+        assert_eq!(app.gamestate, AppState::Won);
     }
 
     #[test]
@@ -232,14 +232,14 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: GameState::Playing,
+            gamestate: AppState::Playing,
             grid,
             start_time: Instant::now(),
-            time_taken_s: None
+            time_taken_s: None,
         };
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, GameState::Lost);
+        assert_eq!(app.gamestate, AppState::Lost);
     }
 }

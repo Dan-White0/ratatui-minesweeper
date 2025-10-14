@@ -1,6 +1,6 @@
 mod app;
+mod appstate;
 mod cell;
-mod gamestate;
 mod grid;
 mod layout;
 

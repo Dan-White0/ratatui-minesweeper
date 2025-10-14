@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, Eq)]
-pub enum GameState {
+pub enum AppState {
     Playing,
     Lost,
     Won,
