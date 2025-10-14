@@ -103,6 +103,7 @@ impl App {
         self.grid.reveal_cell();
         if self.grid.current_cell().is_mine {
             self.gamestate = GameState::Lost;
+            self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         } else if self.grid.finished() {
             self.gamestate = GameState::Won;
             self.time_taken_s = Some(self.start_time.elapsed().as_secs());
