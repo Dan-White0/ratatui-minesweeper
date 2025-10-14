@@ -179,6 +179,7 @@ mod test {
             gamestate: GameState::Playing,
             grid,
             start_time: Instant::now(),
+            time_taken_s: None
         };
         assert!(!app.exit);
 
@@ -206,6 +207,7 @@ mod test {
             gamestate: GameState::Playing,
             grid,
             start_time: Instant::now(),
+            time_taken_s: None
         };
         assert!(!app.exit);
 
@@ -233,6 +235,7 @@ mod test {
             gamestate: GameState::Playing,
             grid,
             start_time: Instant::now(),
+            time_taken_s: None
         };
         assert!(!app.exit);
 
