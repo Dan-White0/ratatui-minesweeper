@@ -191,7 +191,7 @@ impl Grid {
         }
 
         Self {
-            rows: rows,
+            rows,
             number_of_rows,
             number_of_columns,
             cursor_row: 0,
@@ -233,7 +233,7 @@ mod tests {
 
         // Check top error or context
         assert_eq!(
-            format!("{}", error),
+            format!("{error}"),
             "Attempting to create a grid with more mines than cells: 6 cells (3x2 grid), but tried to insert 7 mines"
         );
     }
@@ -243,7 +243,7 @@ mod tests {
         let error = Grid::new(2, 3, 0).unwrap_err();
 
         // Check top error or context
-        assert_eq!(format!("{}", error), "Cannot create a grid with no mines");
+        assert_eq!(format!("{error}"), "Cannot create a grid with no mines");
     }
 
     #[test_case(1 ; "one mine")]
