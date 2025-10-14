@@ -21,6 +21,7 @@ pub struct App {
     grid: Grid,
     gamestate: GameState,
     start_time: Instant,
+    time_taken_s: Option<u64>,
 }
 
 impl App {
@@ -34,6 +35,7 @@ impl App {
             grid: Grid::new(grid_height, grid_width, number_of_mines)?,
             gamestate: GameState::Playing,
             start_time: Instant::now(),
+            time_taken_s: None,
         })
     }
 
@@ -102,7 +104,8 @@ impl App {
         if self.grid.current_cell().is_mine {
             self.gamestate = GameState::Lost;
         } else if self.grid.finished() {
-            self.gamestate = GameState::Won
+            self.gamestate = GameState::Won;
+            self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         }
     }
 }
@@ -111,7 +114,9 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(" Minesweeper! ".bold());
 
-        let time_elapsed = self.start_time.elapsed().as_secs();
+        let time_elapsed = self
+            .time_taken_s
+            .unwrap_or(self.start_time.elapsed().as_secs());
         let minutes = time_elapsed / 60;
         let seconds = time_elapsed % 60;
         let timer = Line::from(format!(" {minutes:0>2}:{seconds:0>2} "));
