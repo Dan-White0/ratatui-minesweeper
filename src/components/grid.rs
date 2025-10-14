@@ -17,6 +17,7 @@ pub struct Grid {
     rows: Vec<Vec<Cell>>,
     cursor_row: usize,
     cursor_column: usize,
+    remaining_empty_cells: usize,
 }
 
 impl Grid {
@@ -55,6 +56,7 @@ impl Grid {
             rows,
             cursor_row: 0,
             cursor_column: 0,
+            remaining_empty_cells: total_cells - number_of_mines,
         })
     }
 
@@ -178,12 +180,22 @@ impl Grid {
     pub fn custom(rows: Vec<Vec<Cell>>) -> Self {
         let number_of_rows = rows.len();
         let number_of_columns = rows[0].len();
+        let mut number_of_mines = 0;
+        for row in &rows {
+            for cell in row {
+                if cell.is_mine {
+                    number_of_mines += 1;
+                }
+            }
+        }
+
         Self {
             rows: rows,
             number_of_rows,
             number_of_columns,
             cursor_row: 0,
             cursor_column: 0,
+            remaining_empty_cells: (number_of_rows * number_of_columns) - number_of_mines,
         }
     }
 }
@@ -195,17 +207,23 @@ mod tests {
 
     use super::*;
 
-    #[test_case(1, 1 ; "tiny grid")]
-    #[test_case(1 , 100; "wide grid")]
-    #[test_case(100 , 1; "tall grid")]
-    #[test_case(100 , 100; "large grid")]
-    fn can_create_grid(number_of_rows: usize, number_of_columns: usize) {
-        let grid = Grid::new(number_of_rows, number_of_columns, 1).unwrap();
+    #[test_case(1, 1, 1, 0 ; "tiny grid")]
+    #[test_case(1 , 100, 5, 95; "wide grid")]
+    #[test_case(100 , 1, 10, 90; "tall grid")]
+    #[test_case(100 , 100, 200, 9800; "large grid")]
+    fn can_create_grid(
+        number_of_rows: usize,
+        number_of_columns: usize,
+        number_of_mines: usize,
+        number_of_empty_cells: usize,
+    ) {
+        let grid = Grid::new(number_of_rows, number_of_columns, number_of_mines).unwrap();
 
         assert_eq!(grid.rows.len(), number_of_rows);
         assert_eq!(grid.rows[0].len(), number_of_columns);
         assert_eq!(grid.cursor_row, 0);
         assert_eq!(grid.cursor_column, 0);
+        assert_eq!(grid.remaining_empty_cells, number_of_empty_cells);
     }
 
     #[test]
@@ -478,37 +496,31 @@ mod tests {
     #[test]
     fn reveling_cell_with_no_neighbouring_mines_reveals_further_cells() {
         // 3x2 grid with a single mine in the top left cell
-        let mut grid = Grid {
-            number_of_rows: 2,
-            number_of_columns: 3,
-            rows: vec![
-                vec![
-                    Cell::default(),
-                    Cell {
-                        neighbouring_mines: 1,
-                        ..Default::default()
-                    },
-                    Cell {
-                        neighbouring_mines: 1,
-                        is_mine: true,
-                        ..Default::default()
-                    },
-                ],
-                vec![
-                    Cell::default(),
-                    Cell {
-                        neighbouring_mines: 1,
-                        ..Default::default()
-                    },
-                    Cell {
-                        neighbouring_mines: 1,
-                        ..Default::default()
-                    },
-                ],
+        let mut grid = Grid::custom(vec![
+            vec![
+                Cell::default(),
+                Cell {
+                    neighbouring_mines: 1,
+                    ..Default::default()
+                },
+                Cell {
+                    neighbouring_mines: 1,
+                    is_mine: true,
+                    ..Default::default()
+                },
             ],
-            cursor_row: 0,
-            cursor_column: 0,
-        };
+            vec![
+                Cell::default(),
+                Cell {
+                    neighbouring_mines: 1,
+                    ..Default::default()
+                },
+                Cell {
+                    neighbouring_mines: 1,
+                    ..Default::default()
+                },
+            ],
+        ]);
         let mut buf = Buffer::empty(Rect::new(0, 0, 3, 2));
 
         grid.render(buf.area, &mut buf);
