@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, time::Instant};
 
 use anyhow::Error;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
@@ -20,6 +20,7 @@ pub struct App {
     exit: bool,
     grid: Grid,
     gamestate: GameState,
+    start_time: Instant,
 }
 
 impl App {
@@ -32,6 +33,7 @@ impl App {
             exit: false,
             grid: Grid::new(grid_height, grid_width, number_of_mines)?,
             gamestate: GameState::Playing,
+            start_time: Instant::now(),
         })
     }
 
@@ -109,8 +111,14 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(" Minesweeper! ".bold());
 
+        let time_elapsed = self.start_time.elapsed().as_secs();
+        let minutes = time_elapsed / 60;
+        let seconds = time_elapsed % 60;
+        let timer = Line::from(format!(" {minutes:0>2}:{seconds:0>2} "));
+
         let mut block = Block::bordered()
             .title(title.centered())
+            .title_bottom(timer.centered())
             .border_set(border::THICK);
 
         if self.gamestate == GameState::Lost {
@@ -164,6 +172,7 @@ mod test {
             exit: false,
             gamestate: GameState::Playing,
             grid,
+            start_time: Instant::now(),
         };
         assert!(!app.exit);
 
@@ -190,6 +199,7 @@ mod test {
             exit: false,
             gamestate: GameState::Playing,
             grid,
+            start_time: Instant::now(),
         };
         assert!(!app.exit);
 
@@ -216,6 +226,7 @@ mod test {
             exit: false,
             gamestate: GameState::Playing,
             grid,
+            start_time: Instant::now(),
         };
         assert!(!app.exit);
 
