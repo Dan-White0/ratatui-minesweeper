@@ -19,7 +19,7 @@ use crate::components::{appstate::AppState, grid::Grid};
 pub struct App {
     exit: bool,
     grid: Grid,
-    gamestate: AppState,
+    app_state: AppState,
     start_time: Instant,
     time_taken_s: Option<u64>,
 }
@@ -33,7 +33,7 @@ impl App {
         Ok(App {
             exit: false,
             grid: Grid::new(grid_height, grid_width, number_of_mines)?,
-            gamestate: AppState::Playing,
+            app_state: AppState::Playing,
             start_time: Instant::now(),
             time_taken_s: None,
         })
@@ -102,10 +102,10 @@ impl App {
     fn reveal_cell(&mut self) {
         self.grid.reveal_cell();
         if self.grid.current_cell().is_mine {
-            self.gamestate = AppState::Lost;
+            self.app_state = AppState::Lost;
             self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         } else if self.grid.finished() {
-            self.gamestate = AppState::Won;
+            self.app_state = AppState::Won;
             self.time_taken_s = Some(self.start_time.elapsed().as_secs());
         }
     }
@@ -127,9 +127,9 @@ impl Widget for &App {
             .title_bottom(timer.centered())
             .border_set(border::THICK);
 
-        if self.gamestate == AppState::Lost {
+        if self.app_state == AppState::Lost {
             block = block.bg(Color::Red);
-        } else if self.gamestate == AppState::Won {
+        } else if self.app_state == AppState::Won {
             block = block.bg(Color::Green);
         }
 
@@ -176,7 +176,7 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: AppState::Playing,
+            app_state: AppState::Playing,
             grid,
             start_time: Instant::now(),
             time_taken_s: None,
@@ -184,7 +184,7 @@ mod test {
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, AppState::Playing);
+        assert_eq!(app.app_state, AppState::Playing);
     }
 
     #[test]
@@ -204,7 +204,7 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: AppState::Playing,
+            app_state: AppState::Playing,
             grid,
             start_time: Instant::now(),
             time_taken_s: None,
@@ -212,7 +212,7 @@ mod test {
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, AppState::Won);
+        assert_eq!(app.app_state, AppState::Won);
     }
 
     #[test]
@@ -232,7 +232,7 @@ mod test {
 
         let mut app = App {
             exit: false,
-            gamestate: AppState::Playing,
+            app_state: AppState::Playing,
             grid,
             start_time: Instant::now(),
             time_taken_s: None,
@@ -240,6 +240,6 @@ mod test {
         assert!(!app.exit);
 
         app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.gamestate, AppState::Lost);
+        assert_eq!(app.app_state, AppState::Lost);
     }
 }
