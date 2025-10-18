@@ -3,7 +3,7 @@ use std::{io, time::Instant};
 use anyhow::Error;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
-    DefaultTerminal, Frame,
+    Frame,
     buffer::Buffer,
     crossterm::style::Color,
     layout::Rect,
@@ -17,7 +17,7 @@ use crate::components::{appstate::AppState, grid::Grid};
 
 #[derive(Debug)]
 pub struct App {
-    exit: bool,
+    pub exit: bool,
     grid: Grid,
     app_state: AppState,
     start_time: Instant,
@@ -39,15 +39,7 @@ impl App {
         })
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), Error> {
-        while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
-            self.handle_events()?;
-        }
-        Ok(())
-    }
-
-    fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&self, frame: &mut Frame) {
         let area = frame.area();
         frame.render_widget(self, area);
 
@@ -60,17 +52,17 @@ impl App {
         frame.render_widget(&self.grid, grid_area);
     }
 
-    fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
+    pub fn handle_events(self) -> io::Result<Self> {
+        let app = match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 self.handle_key_event(key_event)
             }
-            _ => {}
-        }
-        Ok(())
+            _ => self,
+        };
+        Ok(app)
     }
 
-    fn handle_key_event(&mut self, key_event: KeyEvent) {
+    fn handle_key_event(mut self, key_event: KeyEvent) -> Self {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Down => {
@@ -93,6 +85,7 @@ impl App {
             }
             _ => {}
         }
+        self
     }
 
     fn exit(&mut self) {
