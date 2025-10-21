@@ -13,30 +13,34 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use crate::components::{appstate::AppState, grid::Grid};
+use crate::components::grid::Grid;
 
 #[derive(Debug)]
-pub struct App {
-    pub exit: bool,
-    grid: Grid,
-    app_state: AppState,
-    start_time: Instant,
-    time_taken_s: Option<u64>,
+pub enum App {
+    Playing(PlayingState),
+    Won(FinishedState),
+    Lost(FinishedState),
+    Quit,
+}
+
+#[derive(Debug)]
+pub struct PlayingState {
+    pub grid: Grid,
+    pub start_time: Instant,
+}
+
+#[derive(Debug)]
+pub struct FinishedState {
+    pub grid: Grid,
+    pub time_taken_s: u64,
 }
 
 impl App {
-    pub fn new(
-        grid_height: usize,
-        grid_width: usize,
-        number_of_mines: usize,
-    ) -> Result<Self, Error> {
-        Ok(App {
-            exit: false,
-            grid: Grid::new(grid_height, grid_width, number_of_mines)?,
-            app_state: AppState::Playing,
-            start_time: Instant::now(),
-            time_taken_s: None,
-        })
+    pub fn new(grid_height: usize, grid_width: usize, mines: usize) -> Result<Self, Error> {
+        Ok(App::Playing(PlayingState {
+            grid: Grid::new(grid_height, grid_width, mines)?,
+            start_time: std::time::Instant::now(),
+        }))
     }
 
     pub fn draw(&self, frame: &mut Frame) {
@@ -49,58 +53,89 @@ impl App {
             width: area.width - 2,
             height: area.height - 2,
         };
-        frame.render_widget(&self.grid, grid_area);
+
+        match self {
+            App::Playing(state) => {
+                // draw grid, timer
+                frame.render_widget(&state.grid, grid_area);
+            }
+            App::Won(state) => {
+                // draw with green background
+                frame.render_widget(&state.grid, grid_area);
+            }
+            App::Lost(state) => {
+                // draw with red background
+                frame.render_widget(&state.grid, grid_area);
+            }
+            App::Quit => unreachable!("App should close before rendering in this state"),
+        }
     }
 
     pub fn handle_events(self) -> io::Result<Self> {
-        let app = match event::read()? {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event)
-            }
-            _ => self,
-        };
-        Ok(app)
-    }
-
-    fn handle_key_event(mut self, key_event: KeyEvent) -> Self {
-        match key_event.code {
-            KeyCode::Char('q') => self.exit(),
-            KeyCode::Down => {
-                self.grid.move_cursor_down();
-            }
-            KeyCode::Up => {
-                self.grid.move_cursor_up();
-            }
-            KeyCode::Right => {
-                self.grid.move_cursor_right();
-            }
-            KeyCode::Left => {
-                self.grid.move_cursor_left();
-            }
-            KeyCode::Enter => {
-                self.reveal_cell();
-            }
-            KeyCode::Char('f') => {
-                self.grid.flag_cell();
-            }
-            _ => {}
+        if let Event::Key(key_event) = event::read()?
+            && key_event.kind == KeyEventKind::Press
+        {
+            return Ok(self.handle_key_event(key_event));
         }
-        self
+
+        Ok(self)
     }
 
-    fn exit(&mut self) {
-        self.exit = true;
-    }
-
-    fn reveal_cell(&mut self) {
-        self.grid.reveal_cell();
-        if self.grid.current_cell().is_mine {
-            self.app_state = AppState::Lost;
-            self.time_taken_s = Some(self.start_time.elapsed().as_secs());
-        } else if self.grid.finished() {
-            self.app_state = AppState::Won;
-            self.time_taken_s = Some(self.start_time.elapsed().as_secs());
+    fn handle_key_event(self, key_event: KeyEvent) -> Self {
+        match self {
+            App::Playing(mut state) => match key_event.code {
+                KeyCode::Char('q') => Self::Quit,
+                KeyCode::Enter => {
+                    state.grid.reveal_cell();
+                    if state.grid.current_cell().is_mine {
+                        App::Lost(FinishedState {
+                            grid: state.grid,
+                            time_taken_s: state.start_time.elapsed().as_secs(),
+                        })
+                    } else if state.grid.finished() {
+                        App::Won(FinishedState {
+                            grid: state.grid,
+                            time_taken_s: state.start_time.elapsed().as_secs(),
+                        })
+                    } else {
+                        App::Playing(state)
+                    }
+                }
+                KeyCode::Char('f') => {
+                    state.grid.flag_cell();
+                    App::Playing(state)
+                }
+                KeyCode::Down => {
+                    state.grid.move_cursor_down();
+                    App::Playing(state)
+                }
+                KeyCode::Up => {
+                    state.grid.move_cursor_up();
+                    App::Playing(state)
+                }
+                KeyCode::Right => {
+                    state.grid.move_cursor_right();
+                    App::Playing(state)
+                }
+                KeyCode::Left => {
+                    state.grid.move_cursor_left();
+                    App::Playing(state)
+                }
+                _ => {
+                    // handle other movement keys, etc.
+                    App::Playing(state)
+                }
+            },
+            state => match key_event.code {
+                KeyCode::Char('q') => Self::Quit,
+                _ => state,
+            },
+            // Once finished, ignore key events or exit
         }
+    }
+
+    pub fn exit(&self) -> bool {
+        matches!(self, App::Quit)
     }
 }
 
@@ -108,9 +143,14 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(" Minesweeper! ".bold());
 
-        let time_elapsed = self
-            .time_taken_s
-            .unwrap_or(self.start_time.elapsed().as_secs());
+        // compute time + color based on variant
+        let (time_elapsed, bg_color) = match self {
+            App::Playing(state) => (state.start_time.elapsed().as_secs(), None),
+            App::Won(state) => (state.time_taken_s, Some(Color::Green)),
+            App::Lost(state) => (state.time_taken_s, Some(Color::Red)),
+            App::Quit => unreachable!("App should quit before rendering!"),
+        };
+
         let minutes = time_elapsed / 60;
         let seconds = time_elapsed % 60;
         let timer = Line::from(format!(" {minutes:0>2}:{seconds:0>2} "));
@@ -120,10 +160,8 @@ impl Widget for &App {
             .title_bottom(timer.centered())
             .border_set(border::THICK);
 
-        if self.app_state == AppState::Lost {
-            block = block.bg(Color::Red);
-        } else if self.app_state == AppState::Won {
-            block = block.bg(Color::Green);
+        if let Some(color) = bg_color {
+            block = block.bg(color);
         }
 
         Paragraph::new(Line::from(""))
@@ -142,10 +180,10 @@ mod test {
     #[test]
     fn can_exit() {
         let mut app = App::new(1, 1, 1).unwrap();
-        assert!(!app.exit);
+        assert!(!matches!(app, App::Quit));
 
-        app.handle_key_event(KeyCode::Char('q').into());
-        assert!(app.exit);
+        app = app.handle_key_event(KeyCode::Char('q').into());
+        assert!(matches!(app, App::Quit));
     }
 
     #[test]
@@ -167,17 +205,13 @@ mod test {
             },
         ]]);
 
-        let mut app = App {
-            exit: false,
-            app_state: AppState::Playing,
-            grid,
+        let mut app = App::Playing(PlayingState {
+            grid: grid,
             start_time: Instant::now(),
-            time_taken_s: None,
-        };
-        assert!(!app.exit);
+        });
 
-        app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.app_state, AppState::Playing);
+        app = app.handle_key_event(KeyCode::Enter.into());
+        assert!(matches!(app, App::Playing(_)));
     }
 
     #[test]
@@ -195,17 +229,13 @@ mod test {
             },
         ]]);
 
-        let mut app = App {
-            exit: false,
-            app_state: AppState::Playing,
-            grid,
+        let mut app = App::Playing(PlayingState {
+            grid: grid,
             start_time: Instant::now(),
-            time_taken_s: None,
-        };
-        assert!(!app.exit);
+        });
 
-        app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.app_state, AppState::Won);
+        app = app.handle_key_event(KeyCode::Enter.into());
+        assert!(matches!(app, App::Won(_)));
     }
 
     #[test]
@@ -223,16 +253,11 @@ mod test {
             },
         ]]);
 
-        let mut app = App {
-            exit: false,
-            app_state: AppState::Playing,
-            grid,
+        let mut app = App::Playing(PlayingState {
+            grid: grid,
             start_time: Instant::now(),
-            time_taken_s: None,
-        };
-        assert!(!app.exit);
-
-        app.handle_key_event(KeyCode::Enter.into());
-        assert_eq!(app.app_state, AppState::Lost);
+        });
+        app = app.handle_key_event(KeyCode::Enter.into());
+        assert!(matches!(app, App::Lost(_)));
     }
 }

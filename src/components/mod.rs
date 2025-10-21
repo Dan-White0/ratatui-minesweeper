@@ -1,5 +1,4 @@
 mod app;
-mod appstate;
 mod cell;
 mod grid;
 mod layout;

@@ -14,7 +14,7 @@ fn main() -> Result<(), Error> {
 }
 
 fn run_app(mut app: App, mut terminal: DefaultTerminal) -> Result<(), Error> {
-    while !app.exit {
+    while !app.exit() {
         terminal.draw(|frame| app.draw(frame))?;
         app = app.handle_events()?;
     }
