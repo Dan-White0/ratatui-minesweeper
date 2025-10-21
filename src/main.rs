@@ -1,7 +1,8 @@
-use crate::components::App;
+use crate::appstate::App;
 use anyhow::Error;
 use ratatui::DefaultTerminal;
 
+mod appstate;
 mod components;
 
 fn main() -> Result<(), Error> {
