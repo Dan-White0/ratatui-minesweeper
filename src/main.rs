@@ -8,7 +8,6 @@ mod components;
 fn main() -> Result<(), Error> {
     let app = App::default();
     let terminal = ratatui::init();
-    // let app_result = app.run(&mut terminal);
     let app_result = run_app(app, terminal);
     ratatui::restore();
     app_result
