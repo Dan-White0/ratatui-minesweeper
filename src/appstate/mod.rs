@@ -1,5 +1,4 @@
 mod app;
-mod finished_state;
 mod lost;
 mod menu;
 mod playing;
