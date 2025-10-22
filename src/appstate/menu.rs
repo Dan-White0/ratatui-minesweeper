@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use anyhow::Error;
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -10,7 +11,10 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use crate::{appstate::PlayingState, components::Grid};
+use crate::{
+    appstate::{App, PlayingState, Screen},
+    components::Grid,
+};
 
 #[derive(Debug)]
 pub struct MenuState {
@@ -90,9 +94,32 @@ impl Widget for &MenuState {
         lines[self.cursor_height as usize] =
             lines[self.cursor_height as usize].clone().fg(Color::Yellow);
 
-        Paragraph::new(lines)
-            .left_aligned()
-            // .block(block)
-            .render(area, buf);
+        Paragraph::new(lines).left_aligned().render(area, buf);
+    }
+}
+
+impl Screen for MenuState {
+    fn handle_key_event(mut self, key_event: KeyEvent) -> Result<App, Error> {
+        match key_event.code {
+            KeyCode::Char('q') => Ok(App::Quit),
+            KeyCode::Enter if self.cursor_height == 3 => Ok(App::Playing(self.start()?)),
+            KeyCode::Down => {
+                self.move_cursor_down();
+                Ok(App::Menu(self))
+            }
+            KeyCode::Up => {
+                self.move_cursor_up();
+                Ok(App::Menu(self))
+            }
+            KeyCode::Right => {
+                self.increment_value();
+                Ok(App::Menu(self))
+            }
+            KeyCode::Left => {
+                self.decrement_value();
+                Ok(App::Menu(self))
+            }
+            _ => Ok(App::Menu(self)),
+        }
     }
 }

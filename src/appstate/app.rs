@@ -1,5 +1,5 @@
 use anyhow::Error;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{self, Event, KeyEvent, KeyEventKind};
 use ratatui::{
     Frame,
     buffer::Buffer,
@@ -11,14 +11,14 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use crate::appstate::{FinishedState, MenuState, PlayingState};
+use crate::appstate::{LostState, MenuState, PlayingState, Screen, WonState};
 
 #[derive(Debug)]
 pub enum App {
     Menu(MenuState),
     Playing(PlayingState),
-    Won(FinishedState),
-    Lost(FinishedState),
+    Won(WonState),
+    Lost(LostState),
     Quit,
 }
 
@@ -77,75 +77,11 @@ impl App {
 
     fn handle_key_event(self, key_event: KeyEvent) -> Result<Self, Error> {
         match self {
-            App::Menu(mut state) => match key_event.code {
-                KeyCode::Char('q') => Ok(Self::Quit),
-                KeyCode::Enter if state.cursor_height == 3 => Ok(App::Playing(state.start()?)),
-                KeyCode::Down => {
-                    state.move_cursor_down();
-                    Ok(App::Menu(state))
-                }
-                KeyCode::Up => {
-                    state.move_cursor_up();
-                    Ok(App::Menu(state))
-                }
-                KeyCode::Right => {
-                    state.increment_value();
-                    Ok(App::Menu(state))
-                }
-                KeyCode::Left => {
-                    state.decrement_value();
-                    Ok(App::Menu(state))
-                }
-                _ => Ok(App::Menu(state)),
-            },
-            App::Playing(mut state) => match key_event.code {
-                KeyCode::Char('q') => Ok(Self::Quit),
-                KeyCode::Enter => {
-                    state.grid.reveal_cell();
-                    if state.grid.current_cell().is_mine {
-                        Ok(App::Lost(FinishedState {
-                            grid: state.grid,
-                            time_taken_s: state.start_time.elapsed().as_secs(),
-                        }))
-                    } else if state.grid.finished() {
-                        Ok(App::Won(FinishedState {
-                            grid: state.grid,
-                            time_taken_s: state.start_time.elapsed().as_secs(),
-                        }))
-                    } else {
-                        Ok(App::Playing(state))
-                    }
-                }
-                KeyCode::Char('f') => {
-                    state.grid.flag_cell();
-                    Ok(App::Playing(state))
-                }
-                KeyCode::Down => {
-                    state.grid.move_cursor_down();
-                    Ok(App::Playing(state))
-                }
-                KeyCode::Up => {
-                    state.grid.move_cursor_up();
-                    Ok(App::Playing(state))
-                }
-                KeyCode::Right => {
-                    state.grid.move_cursor_right();
-                    Ok(App::Playing(state))
-                }
-                KeyCode::Left => {
-                    state.grid.move_cursor_left();
-                    Ok(App::Playing(state))
-                }
-                _ => {
-                    // handle other movement keys, etc.
-                    Ok(App::Playing(state))
-                }
-            },
-            state => match key_event.code {
-                KeyCode::Char('q') => Ok(Self::Quit),
-                _ => Ok(state),
-            },
-            // Once finished, ignore key events or exit
+            App::Menu(state) => state.handle_key_event(key_event),
+            App::Playing(state) => state.handle_key_event(key_event),
+            App::Lost(state) => state.handle_key_event(key_event),
+            App::Won(state) => state.handle_key_event(key_event),
+            App::Quit => unreachable!("App should quit before"),
         }
     }
 
@@ -197,6 +133,8 @@ impl Widget for &App {
 #[cfg(test)]
 mod test {
     use std::time::Instant;
+
+    use crossterm::event::KeyCode;
 
     use crate::components::{Cell, Grid};
 
