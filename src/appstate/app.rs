@@ -56,10 +56,12 @@ impl App {
             App::Won(state) => {
                 // draw with green background
                 frame.render_widget(&state.grid, internal_area);
+                frame.render_widget(state, internal_area);
             }
             App::Lost(state) => {
                 // draw with red background
                 frame.render_widget(&state.grid, internal_area);
+                frame.render_widget(state, internal_area);
             }
             App::Quit => unreachable!("App should close before rendering in this state"),
         }

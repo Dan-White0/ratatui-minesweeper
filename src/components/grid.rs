@@ -17,7 +17,7 @@ pub struct Grid {
     rows: Vec<Vec<Cell>>,
     cursor_row: usize,
     cursor_column: usize,
-    remaining_empty_cells: usize,
+    pub remaining_empty_cells: usize,
 }
 
 impl Grid {

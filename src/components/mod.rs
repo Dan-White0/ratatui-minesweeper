@@ -4,3 +4,4 @@ mod layout;
 
 pub use cell::Cell;
 pub use grid::Grid;
+pub use layout::center;
