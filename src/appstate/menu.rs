@@ -12,7 +12,7 @@ use ratatui::{
 };
 
 use crate::{
-    appstate::{App, PlayingState, Screen},
+    appstate::{AppState, PlayingState, Screen},
     components::Grid,
 };
 
@@ -99,27 +99,27 @@ impl Widget for &MenuState {
 }
 
 impl Screen for MenuState {
-    fn handle_key_event(mut self, key_event: KeyEvent) -> Result<App, Error> {
+    fn handle_key_event(mut self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
-            KeyCode::Char('q') => Ok(App::Quit),
-            KeyCode::Enter if self.cursor_height == 3 => Ok(App::Playing(self.start()?)),
+            KeyCode::Char('q') => Ok(AppState::Quit),
+            KeyCode::Enter if self.cursor_height == 3 => Ok(AppState::Playing(self.start()?)),
             KeyCode::Down => {
                 self.move_cursor_down();
-                Ok(App::Menu(self))
+                Ok(AppState::Menu(self))
             }
             KeyCode::Up => {
                 self.move_cursor_up();
-                Ok(App::Menu(self))
+                Ok(AppState::Menu(self))
             }
             KeyCode::Right => {
                 self.increment_value();
-                Ok(App::Menu(self))
+                Ok(AppState::Menu(self))
             }
             KeyCode::Left => {
                 self.decrement_value();
-                Ok(App::Menu(self))
+                Ok(AppState::Menu(self))
             }
-            _ => Ok(App::Menu(self)),
+            _ => Ok(AppState::Menu(self)),
         }
     }
 }

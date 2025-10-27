@@ -14,7 +14,7 @@ const WIN_SCREEN_POPUP_WIDTH: u16 = 30;
 const WIN_SCREEN_POPUP_HEIGHT: u16 = 8;
 
 use crate::{
-    appstate::{App, Screen},
+    appstate::{AppState, Screen},
     components::{Grid, center},
 };
 
@@ -25,10 +25,10 @@ pub struct WonState {
 }
 
 impl Screen for WonState {
-    fn handle_key_event(self, key_event: KeyEvent) -> Result<App, Error> {
+    fn handle_key_event(self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
-            KeyCode::Char('q') => Ok(App::Quit),
-            _ => Ok(App::Won(self)),
+            KeyCode::Char('q') => Ok(AppState::Quit),
+            _ => Ok(AppState::Won(self)),
         }
     }
 }

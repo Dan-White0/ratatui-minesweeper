@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    appstate::{App, Screen},
+    appstate::{AppState, Screen},
     components::{Grid, center},
 };
 
@@ -24,10 +24,10 @@ pub struct LostState {
 }
 
 impl Screen for LostState {
-    fn handle_key_event(self, key_event: KeyEvent) -> Result<App, Error> {
+    fn handle_key_event(self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
-            KeyCode::Char('q') => Ok(App::Quit),
-            _ => Ok(App::Lost(self)),
+            KeyCode::Char('q') => Ok(AppState::Quit),
+            _ => Ok(AppState::Lost(self)),
         }
     }
 }

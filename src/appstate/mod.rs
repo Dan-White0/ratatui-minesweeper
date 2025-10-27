@@ -6,7 +6,7 @@ mod quit;
 mod screen;
 mod won;
 
-pub use app::App;
+pub use app::{App, AppState};
 pub use lost::LostState;
 pub use menu::MenuState;
 pub use playing::PlayingState;
