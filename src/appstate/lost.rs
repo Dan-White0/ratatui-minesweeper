@@ -32,7 +32,7 @@ impl Screen for LostState {
     }
 }
 
-impl Widget for &LostState {
+impl Widget for &mut LostState {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::bordered().border_set(border::DOUBLE);
 

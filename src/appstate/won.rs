@@ -33,7 +33,7 @@ impl Screen for WonState {
     }
 }
 
-impl Widget for &WonState {
+impl Widget for &mut WonState {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::bordered().border_set(border::DOUBLE);
 

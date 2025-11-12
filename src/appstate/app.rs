@@ -54,7 +54,7 @@ impl App {
 }
 
 impl App {
-    pub fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&mut self, frame: &mut Frame) {
         let area = frame.area();
         frame.render_widget(&self.app_state, area);
 
@@ -65,7 +65,7 @@ impl App {
             height: area.height - 2,
         };
 
-        match &self.app_state {
+        match &mut self.app_state {
             AppState::Menu(state) => {
                 frame.render_widget(state, internal_area);
             }

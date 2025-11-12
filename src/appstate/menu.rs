@@ -37,9 +37,7 @@ impl MenuState {
         match self.cursor_height {
             0 => self.grid_height += 1,
             1 => self.grid_width += 1,
-            2 if self.number_of_mines < self.grid_height * self.grid_width => {
-                self.number_of_mines += 1
-            }
+            2 => self.number_of_mines += 1,
             _ => {}
         }
     }
@@ -62,8 +60,16 @@ impl MenuState {
     }
 }
 
-impl Widget for &MenuState {
+impl Widget for &mut MenuState {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        // First, bound grid values. This will handle if the terminal has been resized
+        self.grid_height = self.grid_height.min(area.height as usize);
+        self.grid_width = self.grid_width.min(area.width as usize);
+        self.number_of_mines = self
+            .number_of_mines
+            .min(self.grid_height * self.grid_width - 1)
+            .max(1);
+
         let height_line = if self.grid_height == 1 {
             Line::from(format!("    Grid Height:  {:>4} ▶", self.grid_height)).centered()
         } else if self.grid_height == area.height as usize {
