@@ -108,7 +108,9 @@ impl Screen for MenuState {
     fn handle_key_event(mut self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
             KeyCode::Char('q') => Ok(AppState::Quit),
-            KeyCode::Enter if self.cursor_height == 3 => Ok(AppState::Playing(self.start()?)),
+            KeyCode::Enter | KeyCode::Char(' ') if self.cursor_height == 3 => {
+                Ok(AppState::Playing(self.start()?))
+            }
             KeyCode::Down => {
                 self.move_cursor_down();
                 Ok(AppState::Menu(self))
