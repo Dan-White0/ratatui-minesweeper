@@ -2,7 +2,7 @@ use std::{io, time::Duration};
 
 use anyhow::{Error, anyhow};
 use crossterm::event::{self, Event, EventStream, KeyEvent, KeyEventKind};
-use futures::{StreamExt, future::FutureExt, select};
+use futures::{StreamExt, future::FutureExt, select, stream::BoxStream};
 use ratatui::{
     Frame,
     buffer::Buffer,
@@ -21,7 +21,7 @@ const TIMER_TICK_INTERVAL_MS: Duration = Duration::from_millis(100);
 
 pub struct App {
     app_state: AppState,
-    crossterm_events: EventStream,
+    crossterm_events: BoxStream<'static, Result<Event, std::io::Error>>,
     interval: Interval,
 }
 
@@ -43,7 +43,7 @@ impl App {
                 grid_width: 20,
                 number_of_mines: 10,
             }),
-            crossterm_events: EventStream::new(),
+            crossterm_events: EventStream::new().boxed(),
             interval: interval(TIMER_TICK_INTERVAL_MS),
         }
     }
@@ -167,29 +167,31 @@ impl Widget for &AppState {
 }
 
 #[cfg(test)]
-impl App {
-    fn with_app_state(app_state: AppState) -> Self {
-        App {
-            app_state,
-            crossterm_events: event::EventStream::new(),
-            interval: interval(Duration::from_secs(1)),
-        }
-    }
-}
-
-#[cfg(test)]
 mod test {
     use std::time::Instant;
 
     use crossterm::event::KeyCode;
+    use futures::stream;
 
     use crate::components::{Cell, Grid};
 
     use super::*;
 
+    impl App {
+        fn with_app_state_and_fake_stream(app_state: AppState) -> Self {
+            let mock_stream = stream::iter(vec![]).boxed();
+
+            App {
+                app_state,
+                crossterm_events: mock_stream,
+                interval: interval(Duration::from_secs(1)),
+            }
+        }
+    }
+
     #[tokio::test]
     async fn can_exit() {
-        let mut app = App::with_app_state(AppState::Menu(MenuState {
+        let mut app = App::with_app_state_and_fake_stream(AppState::Menu(MenuState {
             cursor_height: 0,
             grid_height: 10,
             grid_width: 20,
@@ -221,7 +223,7 @@ mod test {
             },
         ]]);
 
-        let mut app = App::with_app_state(AppState::Playing(PlayingState {
+        let mut app = App::with_app_state_and_fake_stream(AppState::Playing(PlayingState {
             grid,
             start_time: Instant::now(),
         }));
@@ -246,7 +248,7 @@ mod test {
             },
         ]]);
 
-        let mut app = App::with_app_state(AppState::Playing(PlayingState {
+        let mut app = App::with_app_state_and_fake_stream(AppState::Playing(PlayingState {
             grid,
             start_time: Instant::now(),
         }));
@@ -270,7 +272,7 @@ mod test {
             },
         ]]);
 
-        let mut app = App::with_app_state(AppState::Playing(PlayingState {
+        let mut app = App::with_app_state_and_fake_stream(AppState::Playing(PlayingState {
             grid,
             start_time: Instant::now(),
         }));
