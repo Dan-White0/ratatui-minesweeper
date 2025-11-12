@@ -204,19 +204,20 @@ impl Grid {
 #[cfg(test)]
 mod tests {
     use ratatui::style::Style;
-    use test_case::test_case;
+    use rstest::rstest;
 
     use super::*;
 
-    #[test_case(1, 1, 1, 0 ; "tiny grid")]
-    #[test_case(1 , 100, 5, 95; "wide grid")]
-    #[test_case(100 , 1, 10, 90; "tall grid")]
-    #[test_case(100 , 100, 200, 9800; "large grid")]
+    #[rstest]
+    #[case::tiny_grid(1, 1, 1, 0)]
+    #[case::wide_grid(1, 100, 5, 95)]
+    #[case::tall_grid(100, 1, 10, 90)]
+    #[case::large_grid(100, 100, 200, 9800)]
     fn can_create_grid(
-        number_of_rows: usize,
-        number_of_columns: usize,
-        number_of_mines: usize,
-        number_of_empty_cells: usize,
+        #[case] number_of_rows: usize,
+        #[case] number_of_columns: usize,
+        #[case] number_of_mines: usize,
+        #[case] number_of_empty_cells: usize,
     ) {
         let grid = Grid::new(number_of_rows, number_of_columns, number_of_mines).unwrap();
 
@@ -246,9 +247,10 @@ mod tests {
         assert_eq!(format!("{error}"), "Cannot create a grid with no mines");
     }
 
-    #[test_case(1 ; "one mine")]
-    #[test_case(10 ; "many mines")]
-    fn can_create_grid_with_expected_number_of_mines(expected_number_of_mines: usize) {
+    #[rstest]
+    fn can_create_grid_with_expected_number_of_mines(
+        #[values(1, 10)] expected_number_of_mines: usize,
+    ) {
         let grid = Grid::new(5, 5, expected_number_of_mines).unwrap();
 
         let mut number_of_mines = 0;

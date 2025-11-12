@@ -44,7 +44,7 @@ impl Cell {
 mod tests {
     use super::*;
 
-    use test_case::test_case;
+    use rstest::rstest;
 
     #[test]
     fn can_toggle_flag() {
@@ -117,9 +117,13 @@ mod tests {
         assert_eq!(cell.as_string(), "X");
     }
 
-    #[test_case(true, "X" ; "flagged cell is a mine")]
-    #[test_case(false, "_" ; "flagged cell is not a mine")]
-    fn flagged_cell_converted_to_expected_string(is_mine: bool, revealed_str: &str) {
+    #[rstest]
+    #[case::flagged_cell_is_a_mine(true, "X")] // flagged cell is a mine
+    #[case::flagged_cell_is_not_a_mine(false, "_")] // flagged cell is a mine
+    fn flagged_cell_converted_to_expected_string(
+        #[case] is_mine: bool,
+        #[case] revealed_str: &str,
+    ) {
         let mut cell = Cell {
             flagged: true,
             is_mine,
@@ -133,17 +137,18 @@ mod tests {
         assert_eq!(cell.as_string(), revealed_str);
     }
 
-    #[test_case(1, "1" ; "one neighbouring mine")]
-    #[test_case(2, "2" ; "two neighbouring mines")]
-    #[test_case(3, "3" ; "three neighbouring mines")]
-    #[test_case(4, "4" ; "four neighbouring mines")]
-    #[test_case(5, "5" ; "five neighbouring mines")]
-    #[test_case(6, "6" ; "six neighbouring mines")]
-    #[test_case(7, "7" ; "seven neighbouring mines")]
-    #[test_case(8, "8" ; "eight neighbouring mines")]
+    #[rstest]
+    #[case::one_neighbouring_mine(1, "1")]
+    #[case::two_neighbouring_mines(2, "2")]
+    #[case::three_neighbouring_mines(3, "3")]
+    #[case::four_neighbouring_mines(4, "4")]
+    #[case::five_neighbouring_mines(5, "5")]
+    #[case::six_neighbouring_mines(6, "6")]
+    #[case::seven_neighbouring_mines(7, "7")]
+    #[case::eight_neighbouring_mines(8, "8")]
     fn unmined_cell_with_mined_neighbours_converted_to_expected_string(
-        neighbouring_mines: u8,
-        revealed_str: &str,
+        #[case] neighbouring_mines: u8,
+        #[case] revealed_str: &str,
     ) {
         let mut cell = Cell {
             neighbouring_mines,
@@ -156,16 +161,18 @@ mod tests {
         cell.reveal();
         assert_eq!(cell.as_string(), revealed_str);
     }
-
-    #[test_case(1 ; "one neighbouring mine")]
-    #[test_case(2 ; "two neighbouring mines")]
-    #[test_case(3 ; "three neighbouring mines")]
-    #[test_case(4 ; "four neighbouring mines")]
-    #[test_case(5 ; "five neighbouring mines")]
-    #[test_case(6 ; "six neighbouring mines")]
-    #[test_case(7 ; "seven neighbouring mines")]
-    #[test_case(8 ; "eight neighbouring mines")]
-    fn mined_cell_with_mined_neighbours_converted_to_expected_string(neighbouring_mines: u8) {
+    #[rstest]
+    #[case::one_neighbouring_mine(1)]
+    #[case::two_neighbouring_mines(2)]
+    #[case::three_neighbouring_mines(3)]
+    #[case::four_neighbouring_mines(4)]
+    #[case::five_neighbouring_mines(5)]
+    #[case::six_neighbouring_mines(6)]
+    #[case::seven_neighbouring_mines(7)]
+    #[case::eight_neighbouring_mines(8)]
+    fn mined_cell_with_mined_neighbours_converted_to_expected_string(
+        #[case] neighbouring_mines: u8,
+    ) {
         let mut cell = Cell {
             neighbouring_mines,
             is_mine: true,

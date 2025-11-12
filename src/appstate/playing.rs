@@ -17,7 +17,7 @@ impl Screen for PlayingState {
     fn handle_key_event(mut self, key_event: KeyEvent) -> Result<super::AppState, anyhow::Error> {
         match key_event.code {
             KeyCode::Char('q') => Ok(AppState::Quit),
-            KeyCode::Enter => {
+            KeyCode::Enter | KeyCode::Char(' ') => {
                 self.grid.reveal_cell();
                 if self.grid.current_cell().is_mine {
                     Ok(AppState::Lost(LostState {

@@ -172,6 +172,7 @@ mod test {
 
     use crossterm::event::KeyCode;
     use futures::stream;
+    use rstest::rstest;
 
     use crate::components::{Cell, Grid};
 
@@ -203,9 +204,13 @@ mod test {
         assert!(matches!(app.app_state, AppState::Quit));
     }
 
+    #[rstest]
+    #[case::enter(KeyCode::Enter)]
+    #[case::space(KeyCode::Char(' '))]
     #[tokio::test]
-    async fn revealing_an_empty_cell_doesnt_change_gamestate_if_there_are_still_unrevealed_empty_cells()
-     {
+    async fn revealing_an_empty_cell_doesnt_change_gamestate_if_there_are_still_unrevealed_empty_cells(
+        #[case] key_code: KeyCode,
+    ) {
         // 3x1 grid, mine in third cell
         let grid = Grid::custom(vec![vec![
             Cell {
@@ -228,13 +233,17 @@ mod test {
             start_time: Instant::now(),
         }));
 
-        app = app.handle_key_event(KeyCode::Enter.into()).unwrap();
+        app = app.handle_key_event(key_code.into()).unwrap();
         assert!(matches!(app.app_state, AppState::Playing(_)));
     }
 
+    #[rstest]
+    #[case::enter(KeyCode::Enter)]
+    #[case::space(KeyCode::Char(' '))]
     #[tokio::test]
-    async fn revealing_an_empty_cell_changes_gamestate_to_won_if_there_are_no_unrevealed_empty_cells()
-     {
+    async fn revealing_an_empty_cell_changes_gamestate_to_won_if_there_are_no_unrevealed_empty_cells(
+        #[case] key_code: KeyCode,
+    ) {
         // 2x1 grid, mine in second cell
         let grid = Grid::custom(vec![vec![
             Cell {
@@ -253,12 +262,15 @@ mod test {
             start_time: Instant::now(),
         }));
 
-        app = app.handle_key_event(KeyCode::Enter.into()).unwrap();
+        app = app.handle_key_event(key_code.into()).unwrap();
         assert!(matches!(app.app_state, AppState::Won(_)));
     }
 
+    #[rstest]
+    #[case::enter(KeyCode::Enter)]
+    #[case::space(KeyCode::Char(' '))]
     #[tokio::test]
-    async fn revealing_a_cell_with_a_mine_changes_gamestate_to_lost() {
+    async fn revealing_a_cell_with_a_mine_changes_gamestate_to_lost(#[case] key_code: KeyCode) {
         // 2x1 grid, mine in second cell
         let grid = Grid::custom(vec![vec![
             Cell {
@@ -276,7 +288,7 @@ mod test {
             grid,
             start_time: Instant::now(),
         }));
-        app = app.handle_key_event(KeyCode::Enter.into()).unwrap();
+        app = app.handle_key_event(key_code.into()).unwrap();
         assert!(matches!(app.app_state, AppState::Lost(_)));
     }
 }
