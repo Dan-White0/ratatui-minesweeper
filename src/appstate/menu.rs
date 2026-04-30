@@ -4,7 +4,7 @@ use anyhow::Error;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
+    layout::{Constraint, Rect},
     style::Color,
     style::Stylize,
     text::Line,
@@ -13,7 +13,7 @@ use ratatui::{
 
 use crate::{
     appstate::{AppState, PlayingState, Screen},
-    components::Grid,
+    components::{Grid, center},
 };
 
 #[derive(Debug)]
@@ -100,7 +100,10 @@ impl Widget for &mut MenuState {
         lines[self.cursor_height as usize] =
             lines[self.cursor_height as usize].clone().fg(Color::Yellow);
 
-        Paragraph::new(lines).left_aligned().render(area, buf);
+        let centered_area = center(area, Constraint::Percentage(100), Constraint::Length(4));
+        Paragraph::new(lines)
+            .left_aligned()
+            .render(centered_area, buf);
     }
 }
 

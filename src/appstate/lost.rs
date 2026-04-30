@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use anyhow::Error;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -10,12 +12,12 @@ use ratatui::{
 };
 
 use crate::{
-    appstate::{AppState, Screen},
+    appstate::{AppState, PlayingState, Screen},
     components::{Grid, center},
 };
 
 const LOSE_SCREEN_POPUP_WIDTH: u16 = 30;
-const LOSE_SCREEN_POPUP_HEIGHT: u16 = 8;
+const LOSE_SCREEN_POPUP_HEIGHT: u16 = 10;
 
 #[derive(Debug)]
 pub struct LostState {
@@ -27,6 +29,13 @@ impl Screen for LostState {
     fn handle_key_event(self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
             KeyCode::Char('q') => Ok(AppState::Quit),
+            KeyCode::Char('r') => {
+                let grid = Grid::new(self.grid.rows(), self.grid.columns(), self.grid.mines())?;
+                Ok(AppState::Playing(PlayingState {
+                    grid,
+                    start_time: Instant::now(),
+                }))
+            }
             _ => Ok(AppState::Lost(self)),
         }
     }
@@ -45,6 +54,8 @@ impl Widget for &mut LostState {
                 self.grid.remaining_empty_cells
             ))
             .centered(),
+            Line::from(""),
+            Line::from("R - Restart  Q - Quit").centered(),
         ];
 
         let area = center(

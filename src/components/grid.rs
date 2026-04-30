@@ -14,10 +14,25 @@ use crate::components::{Cell, layout::center};
 pub struct Grid {
     number_of_rows: usize,
     number_of_columns: usize,
+    number_of_mines: usize,
     rows: Vec<Vec<Cell>>,
     cursor_row: usize,
     cursor_column: usize,
     pub remaining_empty_cells: usize,
+}
+
+impl Grid {
+    pub fn rows(&self) -> usize {
+        self.number_of_rows
+    }
+
+    pub fn columns(&self) -> usize {
+        self.number_of_columns
+    }
+
+    pub fn mines(&self) -> usize {
+        self.number_of_mines
+    }
 }
 
 impl Grid {
@@ -49,6 +64,7 @@ impl Grid {
         Ok(Grid {
             number_of_rows,
             number_of_columns,
+            number_of_mines,
             rows,
             cursor_row: 0,
             cursor_column: 0,
@@ -194,6 +210,7 @@ impl Grid {
             rows,
             number_of_rows,
             number_of_columns,
+            number_of_mines,
             cursor_row: 0,
             cursor_column: 0,
             remaining_empty_cells: (number_of_rows * number_of_columns) - number_of_mines,

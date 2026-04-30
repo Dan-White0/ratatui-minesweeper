@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use anyhow::Error;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -11,10 +13,10 @@ use ratatui::{
 };
 
 const WIN_SCREEN_POPUP_WIDTH: u16 = 30;
-const WIN_SCREEN_POPUP_HEIGHT: u16 = 8;
+const WIN_SCREEN_POPUP_HEIGHT: u16 = 10;
 
 use crate::{
-    appstate::{AppState, Screen},
+    appstate::{AppState, PlayingState, Screen},
     components::{Grid, center},
 };
 
@@ -28,6 +30,13 @@ impl Screen for WonState {
     fn handle_key_event(self, key_event: KeyEvent) -> Result<AppState, Error> {
         match key_event.code {
             KeyCode::Char('q') => Ok(AppState::Quit),
+            KeyCode::Char('r') => {
+                let grid = Grid::new(self.grid.rows(), self.grid.columns(), self.grid.mines())?;
+                Ok(AppState::Playing(PlayingState {
+                    grid,
+                    start_time: Instant::now(),
+                }))
+            }
             _ => Ok(AppState::Won(self)),
         }
     }
@@ -46,6 +55,8 @@ impl Widget for &mut WonState {
             Line::from("You win!").centered(),
             Line::from(""),
             Line::from(format!("Time taken: {timer}")).centered(),
+            Line::from(""),
+            Line::from("R - Restart  Q - Quit").centered(),
         ];
 
         let area = center(
